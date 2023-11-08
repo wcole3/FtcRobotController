@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -73,6 +75,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
+    private Servo servoTest = null;
 
     @Override
     public void runOpMode() {
@@ -83,6 +86,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+        servoTest = hardwareMap.get(Servo.class, "servoTest");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -99,7 +104,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
-        // Wait for the game to start (driver presses START)
+        servoTest.setPosition(0.5);
+
+        // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
@@ -114,6 +121,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
+            boolean modifier = gamepad1.left_bumper;
+            boolean modifier2 = gamepad1.right_bumper;
+
+            double servoPower = gamepad2.left_stick_y;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -152,16 +163,55 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+            if(modifier){
+                leftFrontPower *= 0.25;
+                leftBackPower *= 0.25;
+                rightBackPower *= 0.25;
+                rightFrontPower *= 0.25;
+            }
+            if(!modifier2){
+                if(Math.abs(leftFrontPower) > 0.5){
+                    if(leftFrontPower < 0.0){
+                        leftFrontPower = -0.5;
+                    }else{
+                        leftFrontPower = 0.5;
+                    }
+                }
+                if(Math.abs(rightFrontPower) > 0.5){
+                    if(rightFrontPower < 0.0){
+                        rightFrontPower = -0.5;
+                    }else{
+                        rightFrontPower = 0.5;
+                    }
+                }
+                if(Math.abs(rightBackPower) > 0.5){
+                    if(rightBackPower < 0.0){
+                        rightBackPower = -0.5;
+                    }else{
+                        rightBackPower = 0.5;
+                    }
+                }
+                if(Math.abs(leftBackPower) > 0.5){
+                    if(leftBackPower < 0.0){
+                        leftBackPower = -0.5;
+                    }else{
+                           leftBackPower = 0.5;
+                    }
+                }
+            }
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
+            servoTest.setPosition((servoPower + 1) / 2);
+
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Servo pos", "%4.2f", servoPower);
             telemetry.update();
         }
     }}
