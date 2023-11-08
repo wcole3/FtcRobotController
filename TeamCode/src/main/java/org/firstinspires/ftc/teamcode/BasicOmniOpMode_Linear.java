@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -77,6 +78,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private Servo servoTest = null;
 
+    private DcMotor leftArmMotor = null;
+    private DcMotor rightArmMotor = null;
+
     @Override
     public void runOpMode() {
 
@@ -86,6 +90,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
+        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
 
         servoTest = hardwareMap.get(Servo.class, "servoTest");
 
@@ -103,6 +110,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftArmMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightArmMotor.setDirection(DcMotor.Direction.REVERSE);
 
         servoTest.setPosition(0.5);
 
