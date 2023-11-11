@@ -29,14 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -81,6 +79,16 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor leftArmMotor = null;
     private DcMotor rightArmMotor = null;
 
+    /**
+     * Constants
+     */
+
+    private final int ARM_TICKS_PER_INPUT = 5;
+    private int MIN_ARM_POS;
+    private int MAX_ARM_POS = 76;
+
+    private double lastArmPos = 0.0;
+
     @Override
     public void runOpMode() {
 
@@ -110,8 +118,17 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        // Arm motors
         leftArmMotor.setDirection(DcMotor.Direction.FORWARD);
         rightArmMotor.setDirection(DcMotor.Direction.REVERSE);
+        // must set position before switching mode
+        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // set the min arm position to whereever it starts
+        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
 
         servoTest.setPosition(0.5);
 
@@ -133,7 +150,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             boolean modifier = gamepad1.left_bumper;
             boolean modifier2 = gamepad1.right_bumper;
 
-            double servoPower = gamepad2.left_stick_y;
+            double testServoPower = gamepad2.left_stick_y;
+            double testArmMotorPosition = gamepad2.right_stick_y;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -172,41 +190,47 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+            // Slow Mode
             if(modifier){
                 leftFrontPower *= 0.25;
                 leftBackPower *= 0.25;
                 rightBackPower *= 0.25;
                 rightFrontPower *= 0.25;
             }
+            // If Turbo is not pressed clip speed to 50% max
             if(!modifier2){
-                if(Math.abs(leftFrontPower) > 0.5){
-                    if(leftFrontPower < 0.0){
-                        leftFrontPower = -0.5;
-                    }else{
-                        leftFrontPower = 0.5;
-                    }
-                }
-                if(Math.abs(rightFrontPower) > 0.5){
-                    if(rightFrontPower < 0.0){
-                        rightFrontPower = -0.5;
-                    }else{
-                        rightFrontPower = 0.5;
-                    }
-                }
-                if(Math.abs(rightBackPower) > 0.5){
-                    if(rightBackPower < 0.0){
-                        rightBackPower = -0.5;
-                    }else{
-                        rightBackPower = 0.5;
-                    }
-                }
-                if(Math.abs(leftBackPower) > 0.5){
-                    if(leftBackPower < 0.0){
-                        leftBackPower = -0.5;
-                    }else{
-                           leftBackPower = 0.5;
-                    }
-                }
+                leftFrontPower = Range.clip(leftFrontPower, -0.5, 0.5);
+                rightFrontPower = Range.clip(rightFrontPower, -0.5, 0.5);
+                leftBackPower = Range.clip(leftBackPower, -0.5, 0.5);
+                rightBackPower = Range.clip(rightBackPower, -0.5, 0.5);
+//                if(Math.abs(leftFrontPower) > 0.5){
+//                    if(leftFrontPower < 0.0){
+//                        leftFrontPower = -0.5;
+//                    }else{
+//                        leftFrontPower = 0.5;
+//                    }
+//                }
+//                if(Math.abs(rightFrontPower) > 0.5){
+//                    if(rightFrontPower < 0.0){
+//                        rightFrontPower = -0.5;
+//                    }else{
+//                        rightFrontPower = 0.5;
+//                    }
+//                }
+//                if(Math.abs(rightBackPower) > 0.5){
+//                    if(rightBackPower < 0.0){
+//                        rightBackPower = -0.5;
+//                    }else{
+//                        rightBackPower = 0.5;
+//                    }
+//                }
+//                if(Math.abs(leftBackPower) > 0.5){
+//                    if(leftBackPower < 0.0){
+//                        leftBackPower = -0.5;
+//                    }else{
+//                           leftBackPower = 0.5;
+//                    }
+//                }
             }
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -214,13 +238,41 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-            servoTest.setPosition((servoPower + 1) / 2);
+            // Test setting servo position
+            servoTest.setPosition((testServoPower + 1) / 2);
+
+            // Test arm motor position
+            if(lastArmPos != testArmMotorPosition){
+                // calculate the new position
+                int leftCurrentPosition = leftArmMotor.getCurrentPosition();
+                int rightCurrentPosition = rightArmMotor.getCurrentPosition();
+                int offset = (int)testArmMotorPosition * ARM_TICKS_PER_INPUT;
+
+                leftArmMotor.setTargetPosition(Math.max(leftCurrentPosition - offset, MIN_ARM_POS));
+                rightArmMotor.setTargetPosition(Math.max(rightCurrentPosition - offset, MIN_ARM_POS));
+                leftArmMotor.setPower(1.0);
+                rightArmMotor.setPower(1.0);
+                leftArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                while(leftArmMotor.isBusy() && rightArmMotor.isBusy()){
+                    telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
+                    telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftArmMotor.setPower(0.0);
+                rightArmMotor.setPower(0.0);
+                leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                lastArmPos = testArmMotorPosition;
+            }
+
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Servo pos", "%4.2f", servoPower);
+            telemetry.addData("Servo pos", "%4.2f", testServoPower);
+
             telemetry.update();
         }
     }}
