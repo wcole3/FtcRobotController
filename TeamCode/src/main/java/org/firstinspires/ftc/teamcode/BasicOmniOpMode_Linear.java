@@ -84,8 +84,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
      */
 
     private final int ARM_TICKS_PER_INPUT = 5;
-    private int MIN_ARM_POS;
-    private int MAX_ARM_POS = 76;
+    private int MIN_ARM_POS = 0;
+    private int MAX_ARM_POS = 85;
 
     private double lastArmPos = 0.0;
 
@@ -238,33 +238,49 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
+         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
+             leftArmMotor.setPower(testArmMotorPosition*.25);
+             rightArmMotor.setPower(testArmMotorPosition*.37);
+         }else{
+             if (testArmMotorPosition < 0){
+                 leftArmMotor.setPower(testArmMotorPosition*.5);
+                 rightArmMotor.setPower(testArmMotorPosition*.5);
+             }else{
+                 leftArmMotor.setPower(0);
+                 rightArmMotor.setPower(0);
+             }
+
+         }
+
+
+
             // Test setting servo position
-            servoTest.setPosition((testServoPower + 1) / 2);
-
-            // Test arm motor position
-            if(lastArmPos != testArmMotorPosition){
-                // calculate the new position
-                int leftCurrentPosition = leftArmMotor.getCurrentPosition();
-                int rightCurrentPosition = rightArmMotor.getCurrentPosition();
-                int offset = (int)testArmMotorPosition * ARM_TICKS_PER_INPUT;
-
-                leftArmMotor.setTargetPosition(Math.max(leftCurrentPosition - offset, MIN_ARM_POS));
-                rightArmMotor.setTargetPosition(Math.max(rightCurrentPosition - offset, MIN_ARM_POS));
-                leftArmMotor.setPower(1.0);
-                rightArmMotor.setPower(1.0);
-                leftArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                while(leftArmMotor.isBusy() && rightArmMotor.isBusy()){
-                    telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
-                    telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
-                    telemetry.update();
-                }
-                leftArmMotor.setPower(0.0);
-                rightArmMotor.setPower(0.0);
-                leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                lastArmPos = testArmMotorPosition;
-            }
+//            servoTest.setPosition((testServoPower + 1) / 2);
+//
+//            // Test arm motor position
+//            if(lastArmPos != testArmMotorPosition){
+//                // calculate the new position
+//                int leftCurrentPosition = leftArmMotor.getCurrentPosition();
+//                int rightCurrentPosition = rightArmMotor.getCurrentPosition();
+//                int offset = (int)testArmMotorPosition * ARM_TICKS_PER_INPUT;
+//
+//                leftArmMotor.setTargetPosition(Math.max(leftCurrentPosition - offset, MIN_ARM_POS));
+//                rightArmMotor.setTargetPosition(Math.max(rightCurrentPosition - offset, MIN_ARM_POS));
+//                leftArmMotor.setPower(1.0);
+//                rightArmMotor.setPower(1.0);
+//                leftArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                rightArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                while(leftArmMotor.isBusy() && rightArmMotor.isBusy()){
+//                    telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
+//                    telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
+//                    telemetry.update();
+//                }
+//                leftArmMotor.setPower(0.0);
+//                rightArmMotor.setPower(0.0);
+//                leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                lastArmPos = testArmMotorPosition;
+//            }
 
 
             // Show the elapsed game time and wheel power.
@@ -272,6 +288,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Servo pos", "%4.2f", testServoPower);
+            telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
+            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
 
             telemetry.update();
         }
