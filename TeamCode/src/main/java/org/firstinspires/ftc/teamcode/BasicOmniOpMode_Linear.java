@@ -84,8 +84,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
      */
 
     private final int ARM_TICKS_PER_INPUT = 5;
-    private int MIN_ARM_POS = 0;
-    private int MAX_ARM_POS = 85;
+    private int MIN_ARM_POS = 10;
+    private int MAX_ARM_POS = 99;
 
     private double lastArmPos = 0.0;
 
@@ -239,8 +239,19 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
          if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
-             leftArmMotor.setPower(testArmMotorPosition*.25);
-             rightArmMotor.setPower(testArmMotorPosition*.37);
+             // if above min position
+             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
+                 leftArmMotor.setPower(testArmMotorPosition*.25);
+                 rightArmMotor.setPower(testArmMotorPosition*.25);
+             }else{
+                 if (testArmMotorPosition > 0){
+                     leftArmMotor.setPower(testArmMotorPosition*.5);
+                     rightArmMotor.setPower(testArmMotorPosition*.5);
+                 }else{
+                     leftArmMotor.setPower(0);
+                     rightArmMotor.setPower(0);
+                 }
+             }
          }else{
              if (testArmMotorPosition < 0){
                  leftArmMotor.setPower(testArmMotorPosition*.5);
