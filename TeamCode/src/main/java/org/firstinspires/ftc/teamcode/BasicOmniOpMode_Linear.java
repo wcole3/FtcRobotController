@@ -150,7 +150,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             boolean modifier = gamepad1.left_bumper;
             boolean modifier2 = gamepad1.right_bumper;
 
-            double testServoPower = gamepad2.left_stick_y;
+            double testServoPoweropen = gamepad2.left_trigger;
+            double testServoPowerclose = gamepad2.right_trigger;
             double testArmMotorPosition = gamepad2.right_stick_y;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
@@ -266,7 +267,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
 
             // Test setting servo position
-//            servoTest.setPosition((testServoPower + 1) / 2);
+            // check if the right trigger is pressed, if it is move the servo in one position
+            if(testServoPowerclose > 0){
+                servoTest.setPosition(0);
+            }
+            else {
+                servoTest.setPosition(1.0);
+            }
+            //servoTest.setPosition((testServoPower + 1) / 2);
 //
 //            // Test arm motor position
 //            if(lastArmPos != testArmMotorPosition){
@@ -298,7 +306,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Servo pos", "%4.2f", testServoPower);
+            telemetry.addData("Servo pos", "%4.2f", servoTest.getPosition());
             telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
             telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
 
