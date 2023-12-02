@@ -94,6 +94,13 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
     private double lastArmPos = 0.0;
 
+    private double clawPos = 0.0;
+
+    private double wristPos = 0.0;
+
+
+
+
     @Override
     public void runOpMode() {
 
@@ -104,8 +111,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 
-        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
-        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
+//        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
+//        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
+
+        wristServo = hardwareMap.get(Servo.class, "wrist_servo");
+        clawServo = hardwareMap.get(Servo.class,"claw_servo");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -122,16 +132,16 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
         // Arm motors
-        leftArmMotor.setDirection(DcMotor.Direction.FORWARD);
-        rightArmMotor.setDirection(DcMotor.Direction.REVERSE);
+//        leftArmMotor.setDirection(DcMotor.Direction.FORWARD);
+//        rightArmMotor.setDirection(DcMotor.Direction.REVERSE);
         // must set position before switching mode
-        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // set the min arm position to whereever it starts
-        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
+//        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
 
         wristServo.setPosition(0.5);
 
@@ -155,6 +165,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             double clawServoOpen = gamepad2.left_trigger;
             double clawServoClose = gamepad2.right_trigger;
+            boolean wristServoOpen = gamepad2.left_bumper;
+            boolean wristServoClose = gamepad2.right_bumper;
             double testArmMotorPosition = gamepad2.right_stick_y;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
@@ -198,49 +210,69 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
-             // if above min position
-             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
-                 leftArmMotor.setPower(testArmMotorPosition*.25);
-                 rightArmMotor.setPower(testArmMotorPosition*.25);
-             }else{
-                 if (testArmMotorPosition > 0){
-                     leftArmMotor.setPower(testArmMotorPosition*.5);
-                     rightArmMotor.setPower(testArmMotorPosition*.5);
-                 }else{
-                     leftArmMotor.setPower(0);
-                     rightArmMotor.setPower(0);
-                 }
-             }
-         }else{
-             if (testArmMotorPosition < 0){
-                 leftArmMotor.setPower(testArmMotorPosition*.5);
-                 rightArmMotor.setPower(testArmMotorPosition*.5);
-             }else{
-                 leftArmMotor.setPower(0);
-                 rightArmMotor.setPower(0);
-             }
-
-         }
+//         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
+//             // if above min position
+//             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
+//                 leftArmMotor.setPower(testArmMotorPosition*.25);
+//                 rightArmMotor.setPower(testArmMotorPosition*.25);
+//             }else{
+//                 if (testArmMotorPosition > 0){
+//                     leftArmMotor.setPower(testArmMotorPosition*.5);
+//                     rightArmMotor.setPower(testArmMotorPosition*.5);
+//                 }else{
+//                     leftArmMotor.setPower(0);
+//                     rightArmMotor.setPower(0);
+//                 }
+//             }
+//         }else{
+//             if (testArmMotorPosition < 0){
+//                 leftArmMotor.setPower(testArmMotorPosition*.5);
+//                 rightArmMotor.setPower(testArmMotorPosition*.5);
+//             }else{
+//                 leftArmMotor.setPower(0);
+//                 rightArmMotor.setPower(0);
+//             }
+//
+//         }
 
 
 
             // Test setting servo position
             // check if the right trigger is pressed, if it is move the servo in one position
             if(clawServoClose > 0){
-                wristServo.setPosition(0);
+                clawPos = Range.clip(clawPos - 0.0005, 0.0, 1.0);
+                clawServo.setPosition(clawPos);
+            }
+            else if (clawServoOpen > 0){
+                clawPos = Range.clip(clawPos + 0.0005, 0.0, 1.0);
+                clawServo.setPosition(clawPos);
             }
             else {
-                wristServo.setPosition(1.0);
+                clawServo.setPosition(clawPos);
+            }
+
+
+            // wrist servo
+            if(wristServoClose){
+                wristPos = Range.clip(wristPos - 0.0005, 0.0, 1.0);
+                wristServo.setPosition(wristPos);
+            }
+            else if (wristServoOpen){
+                wristPos = Range.clip(wristPos + 0.0005, 0.0, 1.0);
+                wristServo.setPosition(wristPos);
+            }
+            else {
+                wristServo.setPosition(wristPos);
             }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Servo pos", "%4.2f", wristServo.getPosition());
-            telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
-            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
+            telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
+            telemetry.addData("Claw Servo pos", "%4.2f", clawServo.getPosition());
+//            telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
+//            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
 
             telemetry.update();
         }
