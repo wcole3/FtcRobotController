@@ -102,6 +102,9 @@ public class TestingOpMode_Linear extends LinearOpMode {
         wristServo = hardwareMap.get(Servo.class, "wrist_servo");
         clawServo = hardwareMap.get(Servo.class,"claw_servo");
 
+        //lever motor
+        testLeverMotor = hardwareMap.get(DcMotor.class, "test_lever");
+
         wristServo.setPosition(0.5);
 
         // Wait for the game to start (driver presses PLAY)
@@ -148,10 +151,13 @@ public class TestingOpMode_Linear extends LinearOpMode {
                 wristServo.setPosition(wristPos);
             }
 
+            testLeverMotor.setPower(testArmMotorPosition);
+
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
             telemetry.addData("Claw Servo pos", "%4.2f", clawServo.getPosition());
+            telemetry.addData("Lever Motor power", "%4.2f", testLeverMotor.getPower());
 
             telemetry.update();
         }
