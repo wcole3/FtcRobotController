@@ -63,6 +63,7 @@ import com.qualcomm.robotcore.util.Range;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
+// lol
 
 @TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
 //@Disabled
@@ -76,7 +77,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private Servo wristServo = null;
 
-    private Servo clawServo = null;
+    private Servo hugServo = null;
 
     private DcMotor leftArmMotor = null;
     private DcMotor rightArmMotor = null;
@@ -89,7 +90,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     // The min motor encoder position observed from trial and error
     private int MIN_ARM_POS = 10;
     // The max motor encoder position observed from trial and error
-    private int MAX_ARM_POS = 99;
+    private int MAX_ARM_POS = 460;
 
 
     private double lastArmPos = 0.0;
@@ -98,9 +99,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
     private double wristPos = 0.0;
 
-
-
-
+    //LOL
     @Override
     public void runOpMode() {
 
@@ -111,11 +110,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 
-//        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
-//        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
+        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
+        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
 
         wristServo = hardwareMap.get(Servo.class, "wrist_servo");
-        clawServo = hardwareMap.get(Servo.class,"claw_servo");
+        hugServo = hardwareMap.get(Servo.class,"hug_servo");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -132,18 +131,18 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
         // Arm motors
-//        leftArmMotor.setDirection(DcMotor.Direction.FORWARD);
-//        rightArmMotor.setDirection(DcMotor.Direction.REVERSE);
+        leftArmMotor.setDirection(DcMotor.Direction.REVERSE);
+        rightArmMotor.setDirection(DcMotor.Direction.FORWARD);
         // must set position before switching mode
-//        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // set the min arm position to whereever it starts
-//        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
+        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
 
-        wristServo.setPosition(0.5);
+        hugServo.setPosition(0.6);
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -163,8 +162,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             boolean modifier = gamepad1.left_bumper;
             boolean modifier2 = gamepad1.right_bumper;
 
-            double clawServoOpen = gamepad2.left_trigger;
-            double clawServoClose = gamepad2.right_trigger;
+            double hugServoOpen = gamepad2.left_trigger;
+            double hugServoClose = gamepad2.right_trigger;
             boolean wristServoOpen = gamepad2.left_bumper;
             boolean wristServoClose = gamepad2.right_bumper;
             double testArmMotorPosition = gamepad2.right_stick_y;
@@ -210,55 +209,55 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-//         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
-//             // if above min position
-//             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
-//                 leftArmMotor.setPower(testArmMotorPosition*.25);
-//                 rightArmMotor.setPower(testArmMotorPosition*.25);
-//             }else{
-//                 if (testArmMotorPosition > 0){
-//                     leftArmMotor.setPower(testArmMotorPosition*.5);
-//                     rightArmMotor.setPower(testArmMotorPosition*.5);
-//                 }else{
-//                     leftArmMotor.setPower(0);
-//                     rightArmMotor.setPower(0);
-//                 }
-//             }
-//         }else{
-//             if (testArmMotorPosition < 0){
-//                 leftArmMotor.setPower(testArmMotorPosition*.5);
-//                 rightArmMotor.setPower(testArmMotorPosition*.5);
-//             }else{
-//                 leftArmMotor.setPower(0);
-//                 rightArmMotor.setPower(0);
-//             }
-//
-//         }
+         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
+             // if above min position
+             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
+                 leftArmMotor.setPower(testArmMotorPosition*.25);
+                 rightArmMotor.setPower(testArmMotorPosition*.25);
+             }else{
+                 if (testArmMotorPosition > 0){
+                     leftArmMotor.setPower(testArmMotorPosition*.5);
+                     rightArmMotor.setPower(testArmMotorPosition*.5);
+                 }else{
+                     leftArmMotor.setPower(0);
+                     rightArmMotor.setPower(0);
+                 }
+             }
+         }else{
+             if (testArmMotorPosition < 0){
+                 leftArmMotor.setPower(testArmMotorPosition*.5);
+                 rightArmMotor.setPower(testArmMotorPosition*.5);
+             }else{
+                 leftArmMotor.setPower(0);
+                 rightArmMotor.setPower(0);
+             }
+
+         }
 
 
 
             // Test setting servo position
             // check if the right trigger is pressed, if it is move the servo in one position
-            if(clawServoClose > 0){
-                clawPos = Range.clip(clawPos - 0.0005, 0.0, 1.0);
-                clawServo.setPosition(clawPos);
+            if(hugServoClose > 0){
+                clawPos = Range.clip(clawPos - 0.005, 0.15, 0.75);
+                hugServo.setPosition(clawPos);
             }
-            else if (clawServoOpen > 0){
-                clawPos = Range.clip(clawPos + 0.0005, 0.0, 1.0);
-                clawServo.setPosition(clawPos);
+            else if (hugServoOpen > 0){
+                clawPos = Range.clip(clawPos + 0.005, 0.15, 0.75);
+                hugServo.setPosition(clawPos);
             }
             else {
-                clawServo.setPosition(clawPos);
+                hugServo.setPosition(clawPos);
             }
 
 
             // wrist servo
             if(wristServoClose){
-                wristPos = Range.clip(wristPos - 0.0005, 0.0, 1.0);
+                wristPos = Range.clip(wristPos - 0.005, 0.0, 1.0);
                 wristServo.setPosition(wristPos);
             }
             else if (wristServoOpen){
-                wristPos = Range.clip(wristPos + 0.0005, 0.0, 1.0);
+                wristPos = Range.clip(wristPos + 0.005, 0.0, 1.0);
                 wristServo.setPosition(wristPos);
             }
             else {
@@ -270,9 +269,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
-            telemetry.addData("Claw Servo pos", "%4.2f", clawServo.getPosition());
-//            telemetry.addData("Left Arm motor position", "%4d", leftArmMotor.getCurrentPosition());
-//            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
+            telemetry.addData("Claw Servo pos", "%4.2f", hugServo.getPosition());
+            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
 
             telemetry.update();
         }
