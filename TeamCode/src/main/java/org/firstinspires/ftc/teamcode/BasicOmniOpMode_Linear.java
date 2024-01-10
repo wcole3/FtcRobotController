@@ -77,6 +77,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private Servo wristServo = null;
 
+    private Servo intakeServo = null;
     private Servo hugServo = null;
 
     private DcMotor leftArmMotor = null;
@@ -90,13 +91,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     // The min motor encoder position observed from trial and error
     private int MIN_ARM_POS = 10;
     // The max motor encoder position observed from trial and error
-    private int MAX_ARM_POS = 460;
+    private int MAX_ARM_POS = 500;
 
 
     private double lastArmPos = 0.0;
 
-    private double clawPos = 0.0;
-
+    // This also sets the starting position
+    private double clawPos = 0.4;
+    private double intakePos = 0.26;
     private double wristPos = 0.0;
 
     //LOL
@@ -115,7 +117,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         wristServo = hardwareMap.get(Servo.class, "wrist_servo");
         hugServo = hardwareMap.get(Servo.class,"hug_servo");
-
+        intakeServo = hardwareMap.get(Servo.class,"intakeServo");
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -142,8 +144,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // set the min arm position to whereever it starts
         MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
 
-        hugServo.setPosition(0.6);
-
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -161,6 +161,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
             boolean modifier = gamepad1.left_bumper;
             boolean modifier2 = gamepad1.right_bumper;
+            boolean Abutten = gamepad1.a;
+            boolean Bbutten = gamepad1.b;
 
             double hugServoOpen = gamepad2.left_trigger;
             double hugServoClose = gamepad2.right_trigger;
@@ -239,11 +241,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // Test setting servo position
             // check if the right trigger is pressed, if it is move the servo in one position
             if(hugServoClose > 0){
-                clawPos = Range.clip(clawPos - 0.005, 0.15, 0.75);
+                clawPos = Range.clip(clawPos - 0.005, 0.18, 0.48);
                 hugServo.setPosition(clawPos);
             }
             else if (hugServoOpen > 0){
-                clawPos = Range.clip(clawPos + 0.005, 0.15, 0.75);
+                clawPos = Range.clip(clawPos + 0.005, 0.18, 0.48);
                 hugServo.setPosition(clawPos);
             }
             else {
@@ -264,6 +266,19 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 wristServo.setPosition(wristPos);
             }
 
+            // intake servo
+            if(Abutten){
+                intakePos = 0.26;
+                intakeServo.setPosition(intakePos);
+            }
+            else if (Bbutten){
+                intakePos = 0.21;
+                intakeServo.setPosition(intakePos);
+            }
+            else {
+                intakeServo.setPosition(intakePos);
+            }
+
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
@@ -271,6 +286,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
             telemetry.addData("Claw Servo pos", "%4.2f", hugServo.getPosition());
             telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
+            telemetry.addData("intake servo position", "%4.2f", intakeServo.getPosition());
 
             telemetry.update();
         }
