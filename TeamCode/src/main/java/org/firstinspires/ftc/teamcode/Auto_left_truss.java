@@ -29,12 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -65,9 +64,9 @@ import com.qualcomm.robotcore.util.Range;
  */
 // lol
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
+@Autonomous(name="Robot: Auto Left Truss", group="Robot")
 //@Disabled
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+public class Auto_left_truss extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -154,143 +153,61 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
-            double max;
+        double max;
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
-            double yaw     =  gamepad1.right_stick_x;
-            boolean modifier = gamepad1.left_bumper;
-            boolean modifier2 = gamepad1.right_bumper;
-            boolean Abutten = gamepad1.a;
-            boolean Bbutten = gamepad1.b;
+        // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+        double axial   = 0.0;  // forward and reverse
+        double lateral =  0.0; // strafe side to side
+        double yaw     =  0.0;  // turn robot
 
-            double hugServoOpen = gamepad2.left_trigger;
-            double hugServoClose = gamepad2.right_trigger;
-            boolean wristServoOpen = gamepad2.left_bumper;
-            boolean wristServoClose = gamepad2.right_bumper;
-            double testArmMotorPosition = gamepad2.right_stick_y;
+        // Combine the joystick requests for each axis-motion to determine each wheel's power.
+        // Set up a variable for each drive wheel to save the power level for telemetry.
+        double[] powers = setMotorPowers(axial, lateral, yaw);
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
-
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
-
-            if (max > 1.0) {
-                leftFrontPower  /= max;
-                rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
-            }
-
-            // Slow Mode
-            if(modifier){
-                leftFrontPower *= 0.25;
-                leftBackPower *= 0.25;
-                rightBackPower *= 0.25;
-                rightFrontPower *= 0.25;
-            }
-            // If Turbo is not pressed clip speed to 50% max
-            if(!modifier2){
-                leftFrontPower = Range.clip(leftFrontPower, -0.5, 0.5);
-                rightFrontPower = Range.clip(rightFrontPower, -0.5, 0.5);
-                leftBackPower = Range.clip(leftBackPower, -0.5, 0.5);
-                rightBackPower = Range.clip(rightBackPower, -0.5, 0.5);
-
-            }
-            // Send calculated power to wheels
-            leftFrontDrive.setPower(leftFrontPower);
-            rightFrontDrive.setPower(rightFrontPower);
-            leftBackDrive.setPower(leftBackPower);
-            rightBackDrive.setPower(rightBackPower);
-
-         if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
-             // if above min position
-             if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
-                 leftArmMotor.setPower(testArmMotorPosition*.25);
-                 rightArmMotor.setPower(testArmMotorPosition*.25);
-             }else{
-                 if (testArmMotorPosition > 0){
-                     leftArmMotor.setPower(testArmMotorPosition*.5);
-                     rightArmMotor.setPower(testArmMotorPosition*.5);
-                 }else{
-                     leftArmMotor.setPower(0);
-                     rightArmMotor.setPower(0);
-                 }
-             }
-         }else{
-             if (testArmMotorPosition < 0){
-                 leftArmMotor.setPower(testArmMotorPosition*.5);
-                 rightArmMotor.setPower(testArmMotorPosition*.5);
-             }else{
-                 leftArmMotor.setPower(0);
-                 rightArmMotor.setPower(0);
-             }
-
-         }
-
-
-
-            // Test setting servo position
-            // check if the right trigger is pressed, if it is move the servo in one position
-            if(hugServoClose > 0){
-                clawPos = Range.clip(clawPos - 0.005, MIN_CLAW_POS, MAX_CLAW_POS);
-                hugServo.setPosition(clawPos);
-            }
-            else if (hugServoOpen > 0){
-                clawPos = Range.clip(clawPos + 0.005, MIN_CLAW_POS, MAX_CLAW_POS );
-                hugServo.setPosition(clawPos);
-            }
-            else {
-                hugServo.setPosition(clawPos);
-            }
-
-
-            // wrist servo
-            if(wristServoClose){
-                wristPos = Range.clip(wristPos - 0.005, 0.0, 1.0);
-                wristServo.setPosition(wristPos);
-            }
-            else if (wristServoOpen){
-                wristPos = Range.clip(wristPos + 0.005, 0.0, 1.0);
-                wristServo.setPosition(wristPos);
-            }
-            else {
-                wristServo.setPosition(wristPos);
-            }
-
-            // intake servo
-            if(Abutten){
-                intakePos = 0.26;
-                intakeServo.setPosition(intakePos);
-            }
-            else if (Bbutten){
-                intakePos = 0.21;
-                intakeServo.setPosition(intakePos);
-            }
-            else {
-                intakeServo.setPosition(intakePos);
-            }
-
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
-            telemetry.addData("Claw Servo pos", "%4.2f", hugServo.getPosition());
-            telemetry.addData("Right Arm motor position", "%4d", rightArmMotor.getCurrentPosition());
-            telemetry.addData("intake servo position", "%4.2f", intakeServo.getPosition());
-
+        // -------Step 1:  Drive forward  ------
+        powers = setMotorPowers(0.25, 0.0, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 7.5) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
-    }}
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------END STEP 1 ----------------------------
+
+        // ---------- Rotate CCW ----------------------------
+        powers = setMotorPowers(0.0, 0.0, -0.25);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 4.57) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------------- END STEP 2---------------------
+
+        // -------Step 3:  Drive forward  ------
+                powers = setMotorPowers(0.25, 0.0, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 1.61) {
+            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------END STEP 3 ----------------------------
+    }
+
+    public double[] setMotorPowers(double axial, double lateral, double yaw){
+        // Combine the joystick requests for each axis-motion to determine each wheel's power.
+        // Set up a variable for each drive wheel to save the power level for telemetry.
+        double leftFrontPower  = axial + lateral + yaw;
+        double rightFrontPower = axial - lateral - yaw;
+        double leftBackPower   = axial - lateral + yaw;
+        double rightBackPower  = axial + lateral - yaw;
+
+        leftFrontDrive.setPower(leftFrontPower);
+        rightFrontDrive.setPower(rightFrontPower);
+        leftBackDrive.setPower(leftBackPower);
+        rightBackDrive.setPower(rightBackPower);
+
+        return new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
+    }
+}
