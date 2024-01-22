@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -65,7 +66,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 // lol
 
 @Autonomous(name="Robot: Auto right Truss", group="Robot")
-//@Disabled
+@Disabled
 public class Auto_right_truss extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -167,7 +168,7 @@ public class Auto_right_truss extends LinearOpMode {
         // -------Step 1:  Drive forward  ------
         powers = setMotorPowers(0.25, 0.0, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 7.5) {
+        while (opModeIsActive() && runtime.seconds() < 5.79 ) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -177,7 +178,7 @@ public class Auto_right_truss extends LinearOpMode {
         // ---------- Rotate CW ----------------------------
         powers = setMotorPowers(0.0, 0.0, 0.25);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 4.57) {
+        while (opModeIsActive() && runtime.seconds() < 3.0) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -185,13 +186,13 @@ public class Auto_right_truss extends LinearOpMode {
         // -------------------- END STEP 2---------------------
 
         // -------Step 3:  Drive forward  ------
-        powers = setMotorPowers(0.25, 0.0, 0.0);
-        runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 1.61) {
-            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-        powers = setMotorPowers(0.0, 0.0, 0.0);
+//        powers = setMotorPowers(0.25, 0.0, 0.0);
+//        runtime.reset();
+//        while (opModeIsActive() && runtime.seconds() < 1.61) {
+//            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+//            telemetry.update();
+//        }
+//        powers = setMotorPowers(0.0, 0.0, 0.0);
         // -------------END STEP 3 ----------------------------
     }
 

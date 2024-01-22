@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -64,9 +65,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 // lol
 
-@Autonomous(name="Robot: Auto Right no Truss", group="Robot")
-//@Disabled
-public class Auto_right_no_truss extends LinearOpMode {
+@Autonomous(name="Robot: Auto Drive Straight Calibration", group="Robot")
+@Disabled
+public class Auto_straight_cali extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -165,24 +166,15 @@ public class Auto_right_no_truss extends LinearOpMode {
         double[] powers = setMotorPowers(axial, lateral, yaw);
 
         // -------Step 1:  Drive forward  ------
-        powers = setMotorPowers(0.25, 0.0, 0.0);
+        powers = setMotorPowers(0.0, 0.25, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 5.79) {
+        while (opModeIsActive() && runtime.seconds() < 5.0 ) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
         // -------------END STEP 1 ----------------------------
 
-        // ---------- Strafe Right ----------------------------
-        powers = setMotorPowers(0.0, 0.25, 0.0);
-        runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 3.28) {
-            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-        powers = setMotorPowers(0.0, 0.0, 0.0);
-        // -------------------- END STEP 2---------------------
     }
 
     public double[] setMotorPowers(double axial, double lateral, double yaw){

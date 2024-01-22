@@ -101,7 +101,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
     // This also sets the starting position
     private double clawPos = 0.4;
-    private double intakePos = 0.26;
+    private double intakePos = 0.12;
     private double wristPos = 0.0;
 
     //LOL
@@ -271,11 +271,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // intake servo
             if(Abutten){
-                intakePos = 0.26;
+                intakePos = 0.12;
                 intakeServo.setPosition(intakePos);
             }
             else if (Bbutten){
-                intakePos = 0.21;
+                intakePos = 0.09;
                 intakeServo.setPosition(intakePos);
             }
             else {

@@ -64,9 +64,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 // lol
 
-@Autonomous(name="Robot: Auto Left no Truss", group="Robot")
+@Autonomous(name="Robot: Auto Right", group="Robot")
 //@Disabled
-public class Auto_left_no_truss extends LinearOpMode {
+public class Auto_right extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -167,17 +167,17 @@ public class Auto_left_no_truss extends LinearOpMode {
         // -------Step 1:  Drive forward  ------
         powers = setMotorPowers(0.25, 0.0, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 5.79) {
+        while (opModeIsActive() && runtime.seconds() < 5.4) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
         // -------------END STEP 1 ----------------------------
 
-        // ---------- Strafe Left ----------------------------
-        powers = setMotorPowers(0.0, -0.25, 0.0);
+        // ---------- Strafe Right ----------------------------
+        powers = setMotorPowers(0.0, 0.25, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 3.28) {
+        while (opModeIsActive() && runtime.seconds() < 3) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
