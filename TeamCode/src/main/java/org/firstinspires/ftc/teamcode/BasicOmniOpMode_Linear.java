@@ -79,7 +79,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
     private Servo intakeServo = null;
     private Servo hugServo = null;
-
+    private Servo airplane_launcher = null;
     private DcMotor leftArmMotor = null;
     private DcMotor rightArmMotor = null;
 
@@ -95,6 +95,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
     private final double MAX_CLAW_POS = 0.55;
     private final double MIN_CLAW_POS = 0.19;
+    private final double MAX_LAUNCHER_POS = 0.3;
+    private final double MIN_LAUNCHER_POS = 0.1;
 
 
     private double lastArmPos = 0.0;
@@ -103,6 +105,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private double clawPos = 0.4;
     private double intakePos = 0.12;
     private double wristPos = 0.0;
+    private double airplane_launcher_pos = 0.1;
 
     //LOL
     @Override
@@ -121,6 +124,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         wristServo = hardwareMap.get(Servo.class, "wrist_servo");
         hugServo = hardwareMap.get(Servo.class,"hug_servo");
         intakeServo = hardwareMap.get(Servo.class,"intakeServo");
+        airplane_launcher = hardwareMap.get(Servo.class,"airplane_launcher");
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -166,6 +170,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             boolean modifier2 = gamepad1.right_bumper;
             boolean Abutten = gamepad1.a;
             boolean Bbutten = gamepad1.b;
+            boolean launch = gamepad2.a && gamepad2.b;
 
             double hugServoOpen = gamepad2.left_trigger;
             double hugServoClose = gamepad2.right_trigger;
@@ -280,6 +285,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
             else {
                 intakeServo.setPosition(intakePos);
+            }
+
+            if(launch){
+                airplane_launcher.setPosition(MAX_LAUNCHER_POS);
             }
 
             // Show the elapsed game time and wheel power.
