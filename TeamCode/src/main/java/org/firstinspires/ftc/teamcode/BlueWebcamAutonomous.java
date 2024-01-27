@@ -52,7 +52,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
     private final int webcam_height = 240;
 
     // this is the threshold +/- for the color scalar in the pipeline
-    private final int threshold_size = 20;
+    private final int threshold_size = 50;
 
     boolean is_streaming = true;
 
@@ -81,14 +81,14 @@ public class BlueWebcamAutonomous extends LinearOpMode
          * adjusted the name here to match what you named it in said config file.
          */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam_0"), cameraMonitorViewId);
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
         /*
          * Specify the image processing pipeline we wish to invoke upon receipt
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(0,0, 255));
+        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(210,80,80));
         webcam.setPipeline(pipeline);
 
         /*
@@ -136,8 +136,8 @@ public class BlueWebcamAutonomous extends LinearOpMode
             }
         });
 
-        telemetry.addLine("Waiting for start");
-        telemetry.update();
+        //telemetry.addLine("Waiting for start");
+        //telemetry.update();
 
         /*
          * Wait for the user to press start on the Driver Station
@@ -171,10 +171,15 @@ public class BlueWebcamAutonomous extends LinearOpMode
                 is_streaming = false;
             }
         }
-        // get the final vote
-        VOTE vote = pipeline.getVote();
-        // once we get here, we have decided which direction to travel
-        // TODO do the movement
+        while(opModeIsActive()){
+            // get the final vote
+            VOTE vote = pipeline.getVote();
+            telemetry.addData("Vote:", vote.toString());
+            telemetry.update();
+            // once we get here, we have decided which direction to travel
+            // TODO do the movement
+        }
+
     }
 
     /*
@@ -211,11 +216,11 @@ public class BlueWebcamAutonomous extends LinearOpMode
             setColor(color);
             // calculate the lower and upper bounds, ensure the values are between 0 and 255
             lower_bound = new Scalar(Math.max(color.val[0] - threshold.val[0], 0),
-                    Math.max(color.val[1] - threshold.val[1], 0),
-                    Math.max(color.val[2] - threshold.val[2], 0));
+                    Math.max(color.val[1] - (threshold.val[1]/2), 0),
+                    Math.max(color.val[2] - (threshold.val[2]/2), 0));
             upper_bound = new Scalar(Math.min(color.val[0] + threshold.val[0], 255),
-                    Math.min(color.val[1] + threshold.val[1], 255),
-                    Math.min(color.val[2] + threshold.val[2], 255));
+                    Math.min(color.val[1] + (threshold.val[1]/2), 100),
+                    Math.min(color.val[2] + (threshold.val[2]/2), 100));
         }
 
         public void setColor(Scalar color) {
@@ -255,15 +260,21 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // determine which region the centroid is in
             if(left.contains(centroid)) {
                 votes_left++;
+                telemetry.addData("Current Vote:", "Left");
             } else if(center.contains(centroid)) {
                 votes_center++;
+                telemetry.addData("Current Vote:", "Center");
             } else if(right.contains(centroid)) {
                 votes_right++;
+                telemetry.addData("Current Vote:", "Right");
+            }else{
+                telemetry.addData("Current Vote:", "none");
             }
+            telemetry.update();
             // increment the number of frames collected
             frames_collected++;
 
-            return input;
+            return workingMatrix;
         }
 
         public VOTE getVote() {
