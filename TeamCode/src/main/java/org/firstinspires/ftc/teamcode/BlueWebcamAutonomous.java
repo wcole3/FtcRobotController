@@ -91,7 +91,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
     private final int webcam_height = 240;
 
     // this is the threshold +/- for the color scalar in the pipeline
-    private final int threshold_size = 5;
+    private final int threshold_size = 20;
 
     boolean is_streaming = true;
 
