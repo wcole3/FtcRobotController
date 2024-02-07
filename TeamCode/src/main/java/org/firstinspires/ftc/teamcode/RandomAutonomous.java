@@ -27,7 +27,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Blue Webcam Autonomous")
+@Autonomous(name="Random Autonomous")
 public class RandomAutonomous extends LinearOpMode
 {
     // Declare OpMode members for each of the 4 motors.
