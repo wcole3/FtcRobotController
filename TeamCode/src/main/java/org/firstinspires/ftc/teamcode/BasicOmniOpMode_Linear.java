@@ -222,12 +222,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
          if(leftArmMotor.getCurrentPosition() <= MAX_ARM_POS){
              // if above min position
              if(leftArmMotor.getCurrentPosition() >= MIN_ARM_POS){
-                 leftArmMotor.setPower(testArmMotorPosition*.25);
-                 rightArmMotor.setPower(testArmMotorPosition*.25);
+                 leftArmMotor.setPower(testArmMotorPosition*.50);
+                 rightArmMotor.setPower(testArmMotorPosition*.50);
              }else{
                  if (testArmMotorPosition > 0){
-                     leftArmMotor.setPower(testArmMotorPosition*.5);
-                     rightArmMotor.setPower(testArmMotorPosition*.5);
+                     leftArmMotor.setPower(testArmMotorPosition*.75);
+                     rightArmMotor.setPower(testArmMotorPosition*.75);
                  }else{
                      leftArmMotor.setPower(0);
                      rightArmMotor.setPower(0);
@@ -235,8 +235,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
              }
          }else{
              if (testArmMotorPosition < 0){
-                 leftArmMotor.setPower(testArmMotorPosition*.5);
-                 rightArmMotor.setPower(testArmMotorPosition*.5);
+                 leftArmMotor.setPower(testArmMotorPosition*.75);
+                 rightArmMotor.setPower(testArmMotorPosition*.75);
              }else{
                  leftArmMotor.setPower(0);
                  rightArmMotor.setPower(0);

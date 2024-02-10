@@ -72,7 +72,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
      *
      * We will count 30 frames to hopefully average out any noise
      */
-    private int FRAMES_TO_COLLECT = 100;
+    private int FRAMES_TO_COLLECT = 30;
     private int frames_collected = 0;
     // define the left right and center regions as rects
     private Rect left = new Rect(0, 0, webcam_width/3, webcam_height);
@@ -131,7 +131,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
                  * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                  * away from the user.
                  */
-                webcam.startStreaming(webcam_width, webcam_height, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(webcam_width, webcam_height, OpenCvCameraRotation.UPSIDE_DOWN );
             }
 
             @Override
@@ -234,11 +234,11 @@ public class BlueWebcamAutonomous extends LinearOpMode
             setColor(hsv_color);
             // calculate the lower and upper bounds, ensure the values are between 0 and 255
             lower_bound = new Scalar(Math.max(hsv_color.val[0] - threshold.val[0], 0),
-                    50,
-                    50);
+                    150 ,
+                    150);
             upper_bound = new Scalar(Math.min(hsv_color.val[0] + threshold.val[0], 179),
-                    200,
-                    200);
+                    255,
+                    255);
         }
 
         public void setColor(Scalar color) {
@@ -263,17 +263,17 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // Threshold the HSV image, keep only the blue pixels
             Core.inRange(workingMatrix, lower_bound, upper_bound, workingMatrix);
             // mask out the top half of the image
-            Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/2), new Scalar(0, 0, 0), -1);
+            //Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/2), new Scalar(0, 0, 0), -1);
             // Find the contours of the objects
             List< MatOfPoint> contours = new ArrayList<>();
             List<MatOfPoint> draw_contours = new ArrayList<>();
             Mat hierarchy = new Mat();
-            Imgproc.findContours(workingMatrix, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            Imgproc.findContours(workingMatrix, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
             // Calculate all of the centroids
             List<Point> centroids = new ArrayList<>();
             for(MatOfPoint contour : contours) {
                 // only take contours with enough points
-                if(contour.rows() < 50) continue;
+                if(contour.rows() < 0) continue;
                 Moments moments = Imgproc.moments(contour, false);
                 if(moments.get_m00() == 0) continue; // dont divide by zero
                 Point centroid = new Point();
@@ -378,10 +378,10 @@ public class BlueWebcamAutonomous extends LinearOpMode
         public VOTE getVote() {
             if(votes_left > votes_center && votes_left > votes_right) {
                 return VOTE.LEFT;
-            } else if(votes_center > votes_left && votes_center > votes_right) {
-                return VOTE.CENTER;
-            } else {
+            } else if(votes_right > votes_center && votes_right > votes_left) {
                 return VOTE.RIGHT;
+            } else {
+                return VOTE.CENTER;
             }
         }
     }
