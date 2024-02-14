@@ -79,6 +79,38 @@ public class BlueWebcamAutonomous extends LinearOpMode
     private Rect center = new Rect(webcam_width/3, 0, webcam_width/3, webcam_height);
     private Rect right = new Rect(2*webcam_width/3, 0, webcam_width/3, webcam_height);
 
+    private DcMotor leftFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor rightBackDrive = null;
+    private Servo wristServo = null;
+
+    private Servo intakeServo = null;
+    private Servo hugServo = null;
+
+    private DcMotor leftArmMotor = null;
+    private DcMotor rightArmMotor = null;
+
+    /**
+     * Constants
+     */
+
+    private final int ARM_TICKS_PER_INPUT = 5;
+    // The min motor encoder position observed from trial and error
+    private int MIN_ARM_POS = 10;
+    // The max motor encoder position observed from trial and error
+    private int MAX_ARM_POS = 3000;
+
+    private final double MAX_CLAW_POS = 0.55;
+    private final double MIN_CLAW_POS = 0.19;
+
+
+    private double lastArmPos = 0.0;
+
+    // This also sets the starting position
+    private double clawPos = 0.4;
+    private double intakePos = 0.26;
+    private double wristPos = 0.0;
     @Override
     public void runOpMode()
     {
@@ -148,6 +180,45 @@ public class BlueWebcamAutonomous extends LinearOpMode
         //telemetry.addLine("Waiting for start");
         //telemetry.update();
 
+        // Initialize the hardware variables. Note that the strings used here must correspond
+        // to the names assigned during the robot configuration step on the DS or RC devices.
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
+        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
+
+        wristServo = hardwareMap.get(Servo.class, "wrist_servo");
+        hugServo = hardwareMap.get(Servo.class,"hug_servo");
+        intakeServo = hardwareMap.get(Servo.class,"intakeServo");
+        // ########################################################################################
+        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
+        // ########################################################################################
+        // Most robots need the motors on one side to be reversed to drive forward.
+        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
+        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
+        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
+        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
+        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
+        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        // Arm motors
+        leftArmMotor.setDirection(DcMotor.Direction.REVERSE);
+        rightArmMotor.setDirection(DcMotor.Direction.FORWARD);
+        // must set position before switching mode
+        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // set the min arm position to whereever it starts
+        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
+
         /*
          * Wait for the user to press start on the Driver Station
          */
@@ -172,24 +243,97 @@ public class BlueWebcamAutonomous extends LinearOpMode
             /*
              * We want to stop the stream after we've determined which direction to go
              */
-            // TODO change condition to voting
             if(frames_collected >= FRAMES_TO_COLLECT && is_streaming)
             {
-                webcam.stopStreaming();
-                webcam.closeCameraDevice();
                 is_streaming = false;
             }
         }
+        double axial   = 0.0;  // forward and reverse
+        double lateral =  0.0; // strafe side to side
+        double yaw     =  0.0;  // turn robot
+
+        double[] powers = setMotorPowers(axial, lateral, yaw);
         // get the final vote
         VOTE vote = pipeline.getVote();
         telemetry.addData("Vote:", vote.toString());
         telemetry.update();
+        // TODO do second
+
         // once we get here, we have decided which direction to travel
-        // TODO do the movement
+        // The movement
         runtime.reset();
 
-    }
 
+        if(vote == VOTE.LEFT){
+            // -------Step 1:  Drive forward  ------
+            powers = setMotorPowers(0.25, 0.0, 0.0);
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < 5.4) {
+                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
+            powers = setMotorPowers(0.0, 0.0, 0.0);
+            // -------------END STEP 1 ----------------------------
+
+            // ---------- Strafe Left ----------------------------
+            powers = setMotorPowers(0.0, -0.25, 0.0);
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < 3) {
+                telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
+            powers = setMotorPowers(0.0, 0.0, 0.0);
+            // -------------------- END STEP 2---------------------
+        }
+        else if(vote == VOTE.RIGHT){
+            // -------Step 1:  Drive forward  ------
+            powers = setMotorPowers(0.25, 0.0, 0.0);
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < 5.4) {
+                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
+            powers = setMotorPowers(0.0, 0.0, 0.0);
+            // -------------END STEP 1 ----------------------------
+
+            // ---------- Strafe Right ----------------------------
+            powers = setMotorPowers(0.0, 0.25, 0.0);
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < 3) {
+                telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
+            powers = setMotorPowers(0.0, 0.0, 0.0);
+            // -------------------- END STEP 2---------------------
+        }else{
+            // default to center, lowest risk
+            // -------Step 1:  Drive forward  ------
+            powers = setMotorPowers(0.25, 0.0, 0.0);
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < 6.25) {
+                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
+            powers = setMotorPowers(0.0, 0.0, 0.0);
+            // -------------END STEP 1 ----------------------------
+            //TODO end movement
+        }
+    }
+    public double[] setMotorPowers(double axial, double lateral, double yaw){
+        // Combine the joystick requests for each axis-motion to determine each wheel's power.
+        // Set up a variable for each drive wheel to save the power level for telemetry.
+        double leftFrontPower  = axial + lateral + yaw;
+        double rightFrontPower = axial - lateral - yaw;
+        double leftBackPower   = axial - lateral + yaw;
+        double rightBackPower  = axial + lateral - yaw;
+
+        leftFrontDrive.setPower(leftFrontPower);
+        rightFrontDrive.setPower(rightFrontPower);
+        leftBackDrive.setPower(leftBackPower);
+        rightBackDrive.setPower(rightBackPower);
+
+        return new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
+    }
     /*
      * An example image processing pipeline to be run upon receipt of each frame from the camera.
      * Note that the processFrame() method is called serially from the frame worker thread -
@@ -263,7 +407,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // Threshold the HSV image, keep only the blue pixels
             Core.inRange(workingMatrix, lower_bound, upper_bound, workingMatrix);
             // mask out the top half of the image
-            //Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/2), new Scalar(0, 0, 0), -1);
+            Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/2), new Scalar(0, 0, 0), -1);
             // Find the contours of the objects
             List< MatOfPoint> contours = new ArrayList<>();
             List<MatOfPoint> draw_contours = new ArrayList<>();
