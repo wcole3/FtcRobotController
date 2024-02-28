@@ -21,8 +21,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -49,8 +47,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name="Blue Webcam Autonomous")
-public class BlueWebcamAutonomous extends LinearOpMode
+@Autonomous(name="Red Webcam Autonomous")
+public class RedWebcamAutonomous extends LinearOpMode
 {
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -128,7 +126,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(0, 86, 161)); // blue is 4, 47, 86 0056a1
+        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(195, 255, 255)); // blue is
         //red is supposedly 187, 61, 67; d0413f
         webcam.setPipeline(pipeline);
 
