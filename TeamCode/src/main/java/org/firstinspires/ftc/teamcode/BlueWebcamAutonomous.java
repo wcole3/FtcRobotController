@@ -163,7 +163,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
                  * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                  * away from the user.
                  */
-                webcam.startStreaming(webcam_width, webcam_height, OpenCvCameraRotation.UPSIDE_DOWN );
+                webcam.startStreaming(webcam_width, webcam_height, OpenCvCameraRotation.UPRIGHT );
             }
 
             @Override
@@ -278,7 +278,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // ---------- Strafe Left ----------------------------
             powers = setMotorPowers(0.0, -0.25, 0.0);
             runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 3) {
+            while (opModeIsActive() && runtime.seconds() < 3.75) {
                 telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
                 telemetry.update();
             }
@@ -299,7 +299,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // ---------- Strafe Right ----------------------------
             powers = setMotorPowers(0.0, 0.25, 0.0);
             runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 3) {
+            while (opModeIsActive() && runtime.seconds() < 2.75) {
                 telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
                 telemetry.update();
             }
@@ -316,7 +316,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
             }
             powers = setMotorPowers(0.0, 0.0, 0.0);
             // -------------END STEP 1 ----------------------------
-            //TODO end movement
+            // end movement
         }
     }
     public double[] setMotorPowers(double axial, double lateral, double yaw){
@@ -407,7 +407,7 @@ public class BlueWebcamAutonomous extends LinearOpMode
             // Threshold the HSV image, keep only the blue pixels
             Core.inRange(workingMatrix, lower_bound, upper_bound, workingMatrix);
             // mask out the top half of the image
-            Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/2), new Scalar(0, 0, 0), -1);
+            Imgproc.rectangle(workingMatrix, new Point(0, 0), new Point(webcam_width, webcam_height/3 ), new Scalar(0, 0, 0), -1);
             // Find the contours of the objects
             List< MatOfPoint> contours = new ArrayList<>();
             List<MatOfPoint> draw_contours = new ArrayList<>();
