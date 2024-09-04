@@ -70,7 +70,7 @@ public class RedWebcamAutonomous extends LinearOpMode
      *
      * We will count 30 frames to hopefully average out any noise
      */
-    private int FRAMES_TO_COLLECT = 30;
+    private int FRAMES_TO_COLLECT = 90;
     private int frames_collected = 0;
     // define the left right and center regions as rects
     private Rect left = new Rect(0, 0, webcam_width/3, webcam_height);
@@ -126,7 +126,7 @@ public class RedWebcamAutonomous extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(195, 255, 255)); // blue is
+        GamePiecePipeline pipeline = new GamePiecePipeline(new Scalar(230, 10, 10)); // blue is
         //red is supposedly 187, 61, 67; d0413f
         webcam.setPipeline(pipeline);
 
@@ -266,7 +266,7 @@ public class RedWebcamAutonomous extends LinearOpMode
             // -------Step 1:  Drive forward  ------
             powers = setMotorPowers(0.25, 0.0, 0.0);
             runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 5.4) {
+            while (opModeIsActive() && runtime.seconds() < 5.2) {
                 telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
                 telemetry.update();
             }
@@ -287,7 +287,7 @@ public class RedWebcamAutonomous extends LinearOpMode
             // -------Step 1:  Drive forward  ------
             powers = setMotorPowers(0.25, 0.0, 0.0);
             runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 5.4) {
+            while (opModeIsActive() && runtime.seconds() < 5.2) {
                 telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
                 telemetry.update();
             }
