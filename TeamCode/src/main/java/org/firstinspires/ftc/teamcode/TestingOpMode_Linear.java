@@ -31,8 +31,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -70,95 +70,77 @@ public class TestingOpMode_Linear extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor testLeverMotor = null;
-    private Servo wristServo = null;
+    private DcMotor testMotor = null;
+    private DcMotor armMotor = null;
 
-    private Servo clawServo = null;
+    private CRServo testServo = null;
+
+    private int beginning;
+    private final int MOTOR_LIMIT = 2700;
 
 
     /**
      * Constants
      */
 
-    private final int ARM_TICKS_PER_INPUT = 5;
-    // The min motor encoder position observed from trial and error
-    private int MIN_ARM_POS = 10;
-    // The max motor encoder position observed from trial and error
-    private int MAX_ARM_POS = 99;
-
-
-    private double lastArmPos = 0.0;
-
-    private double clawPos = 0.0;
-
-    private double wristPos = 0.0;
-
-
-
-
     @Override
     public void runOpMode() {
 
-        wristServo = hardwareMap.get(Servo.class, "wrist_servo");
-        clawServo = hardwareMap.get(Servo.class,"claw_servo");
-
         //lever motor
-        testLeverMotor = hardwareMap.get(DcMotor.class, "test_lever");
+        testMotor = hardwareMap.get(DcMotor.class, "Test1");
+        armMotor = hardwareMap.get(DcMotor.class, "Test2");
 
-        wristServo.setPosition(0.5);
+        testServo = hardwareMap.get(CRServo.class, "TestServo");
 
-        // Wait for the game to start (driver presses PLAY)
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
-
+        beginning = testMotor.getCurrentPosition();
         waitForStart();
-        runtime.reset();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            double motorinput = gamepad1.right_stick_y;
+            double armInput = gamepad1.left_stick_y;
+            boolean killswitch = gamepad1.right_bumper;
 
-            double clawServoOpen = gamepad2.left_trigger;
-            double clawServoClose = gamepad2.right_trigger;
-            boolean wristServoOpen = gamepad2.left_bumper;
-            boolean wristServoClose = gamepad2.right_bumper;
-            double testArmMotorPosition = gamepad2.right_stick_y;
+            boolean forwardServo = gamepad1.a;
+            boolean backwardServo = gamepad1.b;
 
-            // Test setting servo position
-            // check if the right trigger is pressed, if it is move the servo in one position
-            if(clawServoClose > 0){
-                clawPos = Range.clip(clawPos - 0.0005, 0.0, 1.0);
-                clawServo.setPosition(clawPos);
+            if(motorinput <= 0.0) {
+                if(testMotor.getCurrentPosition() > (beginning - 10)){
+                    testMotor.setPower(motorinput);
+                }else{
+                    testMotor.setPower(0.0);
+                }
             }
-            else if (clawServoOpen > 0){
-                clawPos = Range.clip(clawPos + 0.0005, 0.0, 1.0);
-                clawServo.setPosition(clawPos);
-            }
-            else {
-                clawServo.setPosition(clawPos);
-            }
-
-
-            // wrist servo
-            if(wristServoClose){
-                wristPos = Range.clip(wristPos - 0.0005, 0.0, 1.0);
-                wristServo.setPosition(wristPos);
-            }
-            else if (wristServoOpen){
-                wristPos = Range.clip(wristPos + 0.0005, 0.0, 1.0);
-                wristServo.setPosition(wristPos);
-            }
-            else {
-                wristServo.setPosition(wristPos);
+            else{
+                if(testMotor.getCurrentPosition() < (MOTOR_LIMIT + beginning)){
+                    testMotor.setPower(motorinput);
+                }
+                else{
+                    testMotor.setPower(0.0);
+                    //testMotor.setTargetPosition(MOTOR_LIMIT+beginning);
+                }
             }
 
-            testLeverMotor.setPower(testArmMotorPosition);
+
+            armInput = Range.clip(armInput, -0.5, 0.5);
+            armMotor.setPower(armInput);
+
+            if(forwardServo){
+                testServo.setPower(5.0);
+            }
+            else if(backwardServo){
+                testServo.setPower(-5.0);
+            }
+            else{
+                testServo.setPower(0.0);
+            }
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Wrist Servo pos", "%4.2f", wristServo.getPosition());
-            telemetry.addData("Claw Servo pos", "%4.2f", clawServo.getPosition());
-            telemetry.addData("Lever Motor power", "%4.2f", testLeverMotor.getPower());
+            telemetry.addData("Wrist Servo pos", "%4.2f", testMotor.getPower());
+            telemetry.addData("Motor Position:", testMotor.getCurrentPosition());
 
             telemetry.update();
         }
-    }}
+    }
+}

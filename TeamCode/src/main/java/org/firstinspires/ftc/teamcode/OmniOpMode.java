@@ -76,7 +76,7 @@ public class OmniOpMode extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
 
-    private Servo intakeServo = null;
+//    private Servo intakeServo = null;
     double leftFrontPower;
     double rightFrontPower;
     double leftBackPower;
@@ -106,7 +106,9 @@ public class OmniOpMode extends LinearOpMode {
     public void runOpMode() {
 
         // initialize Robot
-        initializeRobot();
+        if(!initializeRobot()){
+
+        }
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -118,9 +120,6 @@ public class OmniOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             controlRobot();
-
-
-
 
             printTelemetry();
 
@@ -137,16 +136,15 @@ public class OmniOpMode extends LinearOpMode {
             leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-            intakeServo = hardwareMap.get(Servo.class, "intakeServo");
+//            intakeServo = hardwareMap.get(Servo.class, "intakeServo");
 
             /*
                 Setup motors
              */
             leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
             leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-            rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-            rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
-
+            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
             status = true;
         } catch (Exception e) {
@@ -159,7 +157,7 @@ public class OmniOpMode extends LinearOpMode {
         // Method that control all robot behaviors
         getGamepadInputs(); // Get the inputs from the gamepads
         handleRobotMotion(); // Use inputs to control motion
-        handleAttachmentMotion(); // Use inputs to control attachments
+//        handleAttachmentMotion(); // Use inputs to control attachments
     }
 
     private void getGamepadInputs(){
@@ -225,18 +223,18 @@ public class OmniOpMode extends LinearOpMode {
         rightBackDrive.setPower(rightBackPower);
     }
 
-    private void handleAttachmentMotion() {
-        // intake servo
-        if (Abutten) {
-            intakePos = 0.12;
-            intakeServo.setPosition(intakePos);
-        } else if (Bbutten) {
-            intakePos = 0.09;
-            intakeServo.setPosition(intakePos);
-        } else {
-            intakeServo.setPosition(intakePos);
-        }
-    }
+//    private void handleAttachmentMotion() {
+//        // intake servo
+//        if (Abutten) {
+//            intakePos = 0.12;
+//            intakeServo.setPosition(intakePos);
+//        } else if (Bbutten) {
+//            intakePos = 0.09;
+//            intakeServo.setPosition(intakePos);
+//        } else {
+//            intakeServo.setPosition(intakePos);
+//        }
+//    }
 
     // print out the robot's telemetry
     private void printTelemetry() {
@@ -245,7 +243,7 @@ public class OmniOpMode extends LinearOpMode {
         telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
 
-        telemetry.addData("intake servo position", "%4.2f", intakeServo.getPosition());
+//        telemetry.add ake servo position", "%4.2f", intakeServo.getPosition());
 
         telemetry.update();
         // print out the robot's telemetry
