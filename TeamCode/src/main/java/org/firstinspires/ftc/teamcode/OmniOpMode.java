@@ -76,6 +76,8 @@ public class OmniOpMode extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
 
+    private DcMotor liftArmMotor = null;
+
 //    private Servo intakeServo = null;
     double leftFrontPower;
     double rightFrontPower;
@@ -94,10 +96,12 @@ public class OmniOpMode extends LinearOpMode {
     double hugServoClose;
     boolean wristServoOpen;
     boolean wristServoClose;
-    double testArmMotorPosition;
+    double liftArmMotorPosition;
     /*
      * Constants
      */
+    private int liftArmStart;// starting position of the lift arm
+    private final int MOTOR_LIMIT = 2700;
 
     private double intakePos = 0.12;
 
@@ -137,7 +141,7 @@ public class OmniOpMode extends LinearOpMode {
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 //            intakeServo = hardwareMap.get(Servo.class, "intakeServo");
-
+            liftArmMotor = hardwareMap.get(DcMotor.class, "liftArmMotor");
             /*
                 Setup motors
              */
@@ -145,6 +149,8 @@ public class OmniOpMode extends LinearOpMode {
             leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
             rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
             rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
+            liftArmStart = liftArmMotor.getCurrentPosition();
 
             status = true;
         } catch (Exception e) {
@@ -156,8 +162,8 @@ public class OmniOpMode extends LinearOpMode {
     private void controlRobot() {
         // Method that control all robot behaviors
         getGamepadInputs(); // Get the inputs from the gamepads
-        handleRobotMotion(); // Use inputs to control motion
-//        handleAttachmentMotion(); // Use inputs to control attachments
+        //handleRobotMotion(); // Use inputs to control motion
+        handleLiftArm();
     }
 
     private void getGamepadInputs(){
@@ -175,7 +181,7 @@ public class OmniOpMode extends LinearOpMode {
         hugServoClose = gamepad2.right_trigger;
         wristServoOpen = gamepad2.left_bumper;
         wristServoClose = gamepad2.right_bumper;
-        testArmMotorPosition = gamepad2.right_stick_y;
+        liftArmMotorPosition = gamepad2.right_stick_y;
     }
 
     private void handleRobotMotion() {
@@ -223,18 +229,24 @@ public class OmniOpMode extends LinearOpMode {
         rightBackDrive.setPower(rightBackPower);
     }
 
-//    private void handleAttachmentMotion() {
-//        // intake servo
-//        if (Abutten) {
-//            intakePos = 0.12;
-//            intakeServo.setPosition(intakePos);
-//        } else if (Bbutten) {
-//            intakePos = 0.09;
-//            intakeServo.setPosition(intakePos);
-//        } else {
-//            intakeServo.setPosition(intakePos);
-//        }
-//    }
+    private void handleLiftArm(){
+        if(liftArmMotorPosition <= 0.0) {
+            if(liftArmMotor.getCurrentPosition() > (liftArmStart - 10)){
+                liftArmMotor.setPower(liftArmMotorPosition);
+            }else{
+                liftArmMotor.setPower(0.0);
+            }
+        }
+        else{
+            if(liftArmMotor.getCurrentPosition() < (MOTOR_LIMIT + liftArmStart)){
+                liftArmMotor.setPower(liftArmMotorPosition);
+            }
+            else{
+                liftArmMotor.setPower(0.0);
+                //testMotor.setTargetPosition(MOTOR_LIMIT+beginning);
+            }
+        }
+    }
 
     // print out the robot's telemetry
     private void printTelemetry() {

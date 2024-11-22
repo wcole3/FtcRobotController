@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -78,6 +80,8 @@ public class TestingOpMode_Linear extends LinearOpMode {
     private int beginning;
     private final int MOTOR_LIMIT = 2700;
 
+    private final double SERVO_LIMIT = 1.45;
+
 
     /**
      * Constants
@@ -89,8 +93,11 @@ public class TestingOpMode_Linear extends LinearOpMode {
         //lever motor
         testMotor = hardwareMap.get(DcMotor.class, "Test1");
         armMotor = hardwareMap.get(DcMotor.class, "Test2");
+        testMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         testServo = hardwareMap.get(CRServo.class, "TestServo");
+
+        //testServo.setPosition(testServo.getPosition());
 
         beginning = testMotor.getCurrentPosition();
         waitForStart();
@@ -125,20 +132,37 @@ public class TestingOpMode_Linear extends LinearOpMode {
             armInput = Range.clip(armInput, -0.5, 0.5);
             armMotor.setPower(armInput);
 
-            if(forwardServo){
-                testServo.setPower(5.0);
-            }
-            else if(backwardServo){
-                testServo.setPower(-5.0);
-            }
-            else{
+            // for testing cr servo
+            if(forwardServo)
+                testServo.setPower(1);
+            else if(backwardServo)
+                testServo.setPower(-1.0);
+            else
                 testServo.setPower(0.0);
-            }
 
+            /*
+            // FOR testing regular servo
+//            if(testServo.ge n() < SERVO_LIMIT) {
+                if (forwardServo) {
+                    //testServo.setPower(5.0);
+                    testServo.setPosition(testServo.getPosition() + 0.001);
+
+                }
+//            }
+//            if(testServo.getPosition() >= ) {
+                if (backwardServo) {
+                    //testServo.setPower(-5.0);
+                    testServo.setPosition(testServo.getPosition() - 0.001);
+                }
+//            }
+            else{
+                //testServo.setPower(0.0);
+            }
+            */
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Wrist Servo pos", "%4.2f", testMotor.getPower());
-            telemetry.addData("Motor Position:", testMotor.getCurrentPosition());
+            //telemetry.addData("Wrist Servo pos", "%4.2f", testServo.getPosition());
+            telemetry.addData("Motor Zero Power Mode: ", testMotor.getZeroPowerBehavior().toString());
 
             telemetry.update();
         }
