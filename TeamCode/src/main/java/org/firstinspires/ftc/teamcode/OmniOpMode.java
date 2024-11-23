@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -69,16 +70,25 @@ import com.qualcomm.robotcore.util.Range;
 //@Disabled
 public class OmniOpMode extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
+
+    /** Motor and Servo definitions */
+    // Declare OpMode members for each of the 4 motors.
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-
     private DcMotor liftArmMotor = null;
+    private DcMotor intakeArmMotor = null;
+    private DcMotor intakeInOutMotor = null;
+    // Servos
+    private Servo liftArmServo = null;
+    private Servo liftBucketServo = null;
+    private Servo intakeArmServo = null;
+    private CRServo intakeBucketServo = null;
 
-//    private Servo intakeServo = null;
+
+    /** Control Vars */
     double leftFrontPower;
     double rightFrontPower;
     double leftBackPower;
@@ -86,17 +96,24 @@ public class OmniOpMode extends LinearOpMode {
     double axial;
     double lateral;
     double yaw;
-    boolean modifier;
-    boolean modifier2;
-    boolean Abutten;
-    boolean Bbutten;
-    boolean launch;
 
-    double hugServoOpen;
-    double hugServoClose;
-    boolean wristServoOpen;
-    boolean wristServoClose;
+
+    /** Control Input */
+    boolean slowMode;
+    boolean fastMode;
+    double intakeArmPosition;
+    boolean intakeArmIn;
+    boolean intakeArmOut;
     double liftArmMotorPosition;
+    boolean liftArmDump;
+    boolean intakeBucketUp;
+    boolean intakeBucketDown;
+    boolean intakeBucketspinCW;
+    boolean intakeBucketspinCCW;
+
+
+
+
     /*
      * Constants
      */
@@ -136,16 +153,25 @@ public class OmniOpMode extends LinearOpMode {
         try {
             // Initialize the hardware variables. Note that the strings used here must correspond
             // to the names assigned during the robot configuration step on the DS or RC devices.
+            // Drive motor
             leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
             leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-//            intakeServo = hardwareMap.get(Servo.class, "intakeServo");
+            // Arm motors
             liftArmMotor = hardwareMap.get(DcMotor.class, "liftArmMotor");
+            intakeArmMotor = hardwareMap.get(DcMotor.class, "extendoneck");
+            intakeInOutMotor = hardwareMap.get(DcMotor.class, "intakeInOutMotor ");
+            //Servos
+            liftBucketServo = hardwareMap.get(Servo.class, "liftBucketServo");
+            liftArmServo = hardwareMap.get(Servo.class, "liftArmServo");
+            intakeArmServo = hardwareMap.get(Servo.class, "intakeArmServo");
+            intakeBucketServo = hardwareMap.get(CRServo.class, "intakeBucketServo");
+
             /*
                 Setup motors
              */
-            leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
             leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
             rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
             rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
@@ -162,7 +188,7 @@ public class OmniOpMode extends LinearOpMode {
     private void controlRobot() {
         // Method that control all robot behaviors
         getGamepadInputs(); // Get the inputs from the gamepads
-        //handleRobotMotion(); // Use inputs to control motion
+        handleRobotMotion(); // Use inputs to control motion
         handleLiftArm();
     }
 
@@ -172,16 +198,19 @@ public class OmniOpMode extends LinearOpMode {
         axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
         lateral = gamepad1.left_stick_x;
         yaw = gamepad1.right_stick_x;
-        modifier = gamepad1.left_bumper;
-        modifier2 = gamepad1.right_bumper;
-        Abutten = gamepad1.a;
-        Bbutten = gamepad1.b;
-        launch = gamepad2.a && gamepad2.b;
-        hugServoOpen = gamepad2.left_trigger;
-        hugServoClose = gamepad2.right_trigger;
-        wristServoOpen = gamepad2.left_bumper;
-        wristServoClose = gamepad2.right_bumper;
+        slowMode = gamepad1.left_bumper;
+        fastMode = gamepad1.right_bumper;
         liftArmMotorPosition = gamepad2.right_stick_y;
+        intakeArmPosition = gamepad2.left_stick_y;
+        intakeArmOut = gamepad2.left_trigger > 0.5;
+        intakeArmIn = gamepad2.left_bumper;
+        liftArmDump = gamepad2.square;
+        intakeBucketUp = gamepad2.dpad_up;
+        intakeBucketDown = gamepad2.dpad_down;
+        intakeBucketspinCW = gamepad2.right_trigger >0.5;
+        intakeBucketspinCCW = gamepad2.right_bumper;
+
+
     }
 
     private void handleRobotMotion() {
@@ -208,14 +237,14 @@ public class OmniOpMode extends LinearOpMode {
         }
 
         // Slow Mode
-        if (modifier) {
+        if (slowMode) {
             leftFrontPower *= 0.25;
             leftBackPower *= 0.25;
             rightBackPower *= 0.25;
             rightFrontPower *= 0.25;
         }
         // If Turbo is not pressed clip speed to 50% max
-        if (!modifier2) {
+        if (!fastMode) {
             leftFrontPower = Range.clip(leftFrontPower, -0.5, 0.5);
             rightFrontPower = Range.clip(rightFrontPower, -0.5, 0.5);
             leftBackPower = Range.clip(leftBackPower, -0.5, 0.5);
