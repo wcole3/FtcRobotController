@@ -134,7 +134,7 @@ public class OmniOpMode extends LinearOpMode {
 
         // initialize Robot
         if(!initializeRobot()){
-
+            // if we get here, something went wrong
         }
 
         // Wait for the game to start (driver presses PLAY)
@@ -189,7 +189,6 @@ public class OmniOpMode extends LinearOpMode {
             intakeInOutStart = intakeInOutMotor.getCurrentPosition();
             intakeInOutMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
             status = true;
         } catch (Exception e) {
             status = false;
@@ -224,8 +223,6 @@ public class OmniOpMode extends LinearOpMode {
         intakeBucketDown = gamepad2.dpad_down;
         intakeBucketspinCW = gamepad2.right_trigger > 0.5;
         intakeBucketspinCCW = gamepad2.right_bumper;
-
-
     }
 
     private void handleRobotMotion() {
@@ -293,9 +290,14 @@ public class OmniOpMode extends LinearOpMode {
         }
 
         // Logic for controlling lift arm servo position
-        if(liftArmExtend){
+        if(liftArmExtend && liftArmMotor.getCurrentPosition() > MOTOR_LIMIT/2.0){
             liftArmServo.setPosition(liftArmServo.getPosition() + 0.01);
             liftBucketServo.setPosition((1.0 - liftArmServo.getPosition()));
+        }
+        // TODO this check is here to make sure the servo is returned to neutral when the arm is down or moving down
+        else if (liftArmMotor.getCurrentPosition() <= MOTOR_LIMIT/2.0){
+            liftArmServo.setPosition(0.0);
+            liftBucketServo.setPosition(1.0);
         }
         else if(liftArmRetract){
             liftArmServo.setPosition(liftArmServo.getPosition() - 0.01);
@@ -342,13 +344,22 @@ public class OmniOpMode extends LinearOpMode {
         }
 
         // Logic to handle wrist motion
-        if(intakeBucketUp){
-            intakeArmServo.setPosition(intakeArmServo.getPosition() +0.01);
+        // add a check that the arms are not moving and lift is not raised before moving arm out
+        if(intakeInOutMotor.getCurrentPosition() <= intakeInOutStart + 50 
+            && intakeArmMotor.getCurrentPosition() <= intakeArmStart + 50
+            && liftArmMotor.getCurrentPosition() <= liftArmStart + 50){
+                // control is allowed
+                if(intakeBucketUp){
+                    intakeArmServo.setPosition(intakeArmServo.getPosition() +0.01);
+                }
+                else if(intakeBucketDown){
+                    intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.01);
+                }
+        }else{
+            intakeArmServo.setPosition(0.0);
         }
-        else if(intakeBucketDown){
-            intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.01);
-        }
-
+        
+        // Logic to handle bucket spin
         if(intakeBucketspinCW){
             intakeBucketServo.setPower(1.0);
         }
@@ -370,11 +381,7 @@ public class OmniOpMode extends LinearOpMode {
         telemetry.addData("Intake Arm Position: ", intakeArmMotor.getCurrentPosition());
         telemetry.addData("Intake In/Out Position: ", intakeInOutMotor.getCurrentPosition());
 
-//        telemetry.add ake servo position", "%4.2f", intakeServo.getPosition());
-
         telemetry.update();
-        // print out the robot's telemetry
-        // TODO
     }
 
 }
