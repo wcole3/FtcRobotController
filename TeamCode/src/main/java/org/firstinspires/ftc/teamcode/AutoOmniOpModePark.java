@@ -30,10 +30,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -64,87 +67,76 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 // lol
 
-@Autonomous(name="Robot: Auto Right", group="Robot")
+@Autonomous(name = "Autobots Left")
 //@Disabled
-public class Auto_right extends LinearOpMode {
+public class AutoOmniOpModePark extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
+
+    /** Motor and Servo definitions */
+    // Declare OpMode members for each of the 4 motors.
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private Servo wristServo = null;
+    private DcMotor liftArmMotor = null;
+    private DcMotor intakeArmMotor = null;
+    private DcMotor intakeInOutMotor = null;
+    // Servos
+    private Servo liftArmServo = null;
+    private Servo liftBucketServo = null;
+    private Servo intakeArmServo = null;
+    private CRServo intakeBucketServo = null;
 
-    private Servo intakeServo = null;
-    private Servo hugServo = null;
 
-    private DcMotor leftArmMotor = null;
-    private DcMotor rightArmMotor = null;
+    /** Control Vars */
+    double leftFrontPower;
+    double rightFrontPower;
+    double leftBackPower;
+    double rightBackPower;
+    double axial;
+    double lateral;
+    double yaw;
 
-    /**
+
+    /** Control Input */
+    boolean slowMode;
+    boolean fastMode;
+    double intakeArmPosition;
+    boolean intakeArmIn;
+    boolean intakeArmOut;
+    double liftArmMotorPosition;
+    boolean liftArmDump;
+    boolean liftArmExtend;
+    boolean liftArmRetract;
+    boolean intakeBucketUp;
+    boolean intakeBucketDown;
+    boolean intakeBucketspinCW;
+    boolean intakeBucketspinCCW;
+
+
+
+
+    /*
      * Constants
      */
+    private int liftArmStart;// starting position of the lift arm
+    private final int MOTOR_LIMIT = 2700;
 
-    private final int ARM_TICKS_PER_INPUT = 5;
-    // The min motor encoder position observed from trial and error
-    private int MIN_ARM_POS = 10;
-    // The max motor encoder position observed from trial and error
-    private int MAX_ARM_POS = 3000;
+    private int intakeArmStart;
+     private final int INTAKE_RAISELOWER_MOTOR_LIMIT = 180;
 
-    private final double MAX_CLAW_POS = 0.55;
-    private final double MIN_CLAW_POS = 0.19;
-
-
-    private double lastArmPos = 0.0;
-
-    // This also sets the starting position
-    private double clawPos = 0.4;
-    private double intakePos = 0.26;
-    private double wristPos = 0.0;
+    private int intakeInOutStart;
+    private final int INTAKE_INOUT_MOTOR_LIMIT = 3450;
 
     //LOL
     @Override
     public void runOpMode() {
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-
-        leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
-        rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
-
-        wristServo = hardwareMap.get(Servo.class, "wrist_servo");
-        hugServo = hardwareMap.get(Servo.class,"hug_servo");
-        intakeServo = hardwareMap.get(Servo.class,"intakeServo");
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        // Arm motors
-        leftArmMotor.setDirection(DcMotor.Direction.REVERSE);
-        rightArmMotor.setDirection(DcMotor.Direction.FORWARD);
-        // must set position before switching mode
-        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // set the min arm position to whereever it starts
-        MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
+        // initialize Robot
+        if(!initializeRobot()){
+            // if we get here, something went wrong
+        }
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -153,36 +145,64 @@ public class Auto_right extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        double max;
+        // run until the end of the match (driver presses STOP)
+        controlRobot();
 
-        // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double axial   = 0.0;  // forward and reverse
-        double lateral =  0.0; // strafe side to side
-        double yaw     =  0.0;  // turn robot
+    }
 
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double[] powers = setMotorPowers(axial, lateral, yaw);
+    private boolean initializeRobot() {
+        // Setup all variables from the hardmap
+        boolean status = false;
+        try {
+            // Initialize the hardware variables. Note that the strings used here must correspond
+            // to the names assigned during the robot configuration step on the DS or RC devices.
+            // Drive motor
+            leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
+            leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
+            rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+            rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+            // Arm motors
+            liftArmMotor = hardwareMap.get(DcMotor.class, "liftArmMotor");
+            intakeArmMotor = hardwareMap.get(DcMotor.class, "extendoneck");
+            intakeInOutMotor = hardwareMap.get(DcMotor.class, "intakeInOutMotor ");
+            //Servos
+            liftBucketServo = hardwareMap.get(Servo.class, "liftBucketServo");
+            liftArmServo = hardwareMap.get(Servo.class, "liftArmServo");
+            intakeArmServo = hardwareMap.get(Servo.class, "intakeArmServo");
+            intakeBucketServo = hardwareMap.get(CRServo.class, "intakeBucketServo");
 
-        // -------Step 1:  Drive forward  ------
-        powers = setMotorPowers(0.25, 0.0, 0.0);
-        runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 5.4) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
+            /*
+                Setup motors
+             */
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+            leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
+            liftArmStart = liftArmMotor.getCurrentPosition();
+            liftArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intakeArmStart = intakeArmMotor.getCurrentPosition();
+            intakeArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intakeInOutStart = intakeInOutMotor.getCurrentPosition();
+            intakeInOutMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+            status = true;
+        } catch (Exception e) {
+            status = false;
         }
-        powers = setMotorPowers(0.0, 0.0, 0.0);
-        // -------------END STEP 1 ----------------------------
+        return status;
+    }
 
-        // ---------- Strafe Right ----------------------------
-        powers = setMotorPowers(0.0, 0.25, 0.0);
+    private void controlRobot() {
+        // Method that control all robot behaviors
+        double[] powers;
+        powers = setMotorPowers(0.0, -0.25, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 3) {
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
-        // -------------------- END STEP 2---------------------
     }
 
     public double[] setMotorPowers(double axial, double lateral, double yaw){
@@ -200,4 +220,20 @@ public class Auto_right extends LinearOpMode {
 
         return new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
     }
+
+
+
+    // print out the robot's telemetry
+    private void printTelemetry() {
+        // Show the elapsed game time and wheel power.
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+        telemetry.addData("Lift Arm Position: ", liftArmMotor.getCurrentPosition());
+        telemetry.addData("Intake Arm Position: ", intakeArmMotor.getCurrentPosition());
+        telemetry.addData("Intake In/Out Position: ", intakeInOutMotor.getCurrentPosition());
+
+        telemetry.update();
+    }
+
 }

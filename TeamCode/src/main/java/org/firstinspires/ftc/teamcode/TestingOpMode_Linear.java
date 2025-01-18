@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -78,7 +79,7 @@ public class TestingOpMode_Linear extends LinearOpMode {
     private CRServo testServo = null;
 
     private int beginning;
-    private final int MOTOR_LIMIT = 2700;
+    private final int MOTOR_LIMIT = -1100;
 
     private final double SERVO_LIMIT = 1.45;
 
@@ -92,10 +93,12 @@ public class TestingOpMode_Linear extends LinearOpMode {
 
         //lever motor
         testMotor = hardwareMap.get(DcMotor.class, "Test1");
-        armMotor = hardwareMap.get(DcMotor.class, "Test2");
+//        armMotor = hardwareMap.get(DcMotor.class, "Test2");
         testMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        testMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        testMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        testServo = hardwareMap.get(CRServo.class, "TestServo");
+//        testServo = hardwareMap.get(CRServo.class, "TestServo");
 
         //testServo.setPosition(testServo.getPosition());
 
@@ -111,34 +114,31 @@ public class TestingOpMode_Linear extends LinearOpMode {
             boolean forwardServo = gamepad1.a;
             boolean backwardServo = gamepad1.b;
 
-            if(motorinput <= 0.0) {
-                if(testMotor.getCurrentPosition() > (beginning - 10)){
-                    testMotor.setPower(motorinput);
-                }else{
-                    testMotor.setPower(0.0);
-                }
-            }
-            else{
-                if(testMotor.getCurrentPosition() < (MOTOR_LIMIT + beginning)){
-                    testMotor.setPower(motorinput);
-                }
-                else{
-                    testMotor.setPower(0.0);
-                    //testMotor.setTargetPosition(MOTOR_LIMIT+beginning);
-                }
-            }
+            // Normal encoder motion
+//            if(motorinput > 0.0){
+//                testMotor.setPower(0.1);
+//            }
+//            else if(motorinput < 0.0){
+//                testMotor.setPower(-0.1);
+//            }
+//            else{
+//                testMotor.setPower(0.0);
+//            }
+
+            if(motorinput != 0.0)
+                setMotorPosition(motorinput);
 
 
-            armInput = Range.clip(armInput, -0.5, 0.5);
-            armMotor.setPower(armInput);
-
-            // for testing cr servo
-            if(forwardServo)
-                testServo.setPower(1);
-            else if(backwardServo)
-                testServo.setPower(-1.0);
-            else
-                testServo.setPower(0.0);
+//            armInput = Range.clip(armInput, -0.5, 0.5);
+//            armMotor.setPower(armInput);
+//
+//            // for testing cr servo
+//            if(forwardServo)
+//                testServo.setPower(1);
+//            else if(backwardServo)
+//                testServo.setPower(-1.0);
+//            else
+//                testServo.setPower(0.0);
 
             /*
             // FOR testing regular servo
@@ -163,8 +163,24 @@ public class TestingOpMode_Linear extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             //telemetry.addData("Wrist Servo pos", "%4.2f", testServo.getPosition());
             telemetry.addData("Motor Zero Power Mode: ", testMotor.getZeroPowerBehavior().toString());
-
+            telemetry.addData("Current target position: ", testMotor.getTargetPosition());
+            telemetry.addData("Current controller input: ", motorinput);
+            telemetry.addData("Current Motor Position: ", testMotor.getCurrentPosition());
             telemetry.update();
         }
+    }
+
+    private void setMotorPosition(double motorinput) {
+        if(testMotor.isBusy())
+            return;
+        if(motorinput > 0.0){
+            testMotor.setTargetPosition((int)(motorinput*MOTOR_LIMIT));
+
+        } else if (motorinput < 0.0) {
+            testMotor.setTargetPosition(0);
+        }
+        testMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        testMotor.setPower(0.25);
+
     }
 }

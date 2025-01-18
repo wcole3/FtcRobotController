@@ -29,8 +29,9 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -66,23 +67,20 @@ import com.qualcomm.robotcore.util.Range;
  */
 // lol
 
-@TeleOp(name = "Omni OpMode", group = "Linear OpMode")
-//@Disabled
-public class OmniOpMode extends LinearOpMode {
+@Autonomous(name = "Autobots Right")
+@Disabled
+public class AutoOmniOpModeBucket extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    /**
-     * Motor and Servo definitions
-     */
+    /** Motor and Servo definitions */
     // Declare OpMode members for each of the 4 motors.
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DcMotor liftArmMotor = null;
-    private DcMotor intakeArmMotor1 = null;
-    private DcMotor intakeArmMotor2 = null;
+    private DcMotor intakeArmMotor = null;
     private DcMotor intakeInOutMotor = null;
     // Servos
     private Servo liftArmServo = null;
@@ -91,9 +89,7 @@ public class OmniOpMode extends LinearOpMode {
     private CRServo intakeBucketServo = null;
 
 
-    /**
-     * Control Vars
-     */
+    /** Control Vars */
     double leftFrontPower;
     double rightFrontPower;
     double leftBackPower;
@@ -103,9 +99,7 @@ public class OmniOpMode extends LinearOpMode {
     double yaw;
 
 
-    /**
-     * Control Input
-     */
+    /** Control Input */
     boolean slowMode;
     boolean fastMode;
     double intakeArmPosition;
@@ -121,15 +115,16 @@ public class OmniOpMode extends LinearOpMode {
     boolean intakeBucketspinCCW;
 
 
+
+
     /*
      * Constants
      */
     private int liftArmStart;// starting position of the lift arm
-    private final int LIFT_MOTOR_LIMIT = -900;
+    private final int MOTOR_LIMIT = 2700;
 
-    private int intakeArm1Start;
-    private int intakeArm2Start;
-    private final int INTAKE_ARM_MOTOR_LIMIT = 800;
+    private int intakeArmStart;
+     private final int INTAKE_RAISELOWER_MOTOR_LIMIT = 180;
 
     private int intakeInOutStart;
     private final int INTAKE_INOUT_MOTOR_LIMIT = 3450;
@@ -139,7 +134,7 @@ public class OmniOpMode extends LinearOpMode {
     public void runOpMode() {
 
         // initialize Robot
-        if (!initializeRobot()) {
+        if(!initializeRobot()){
             // if we get here, something went wrong
         }
 
@@ -151,12 +146,8 @@ public class OmniOpMode extends LinearOpMode {
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
-            controlRobot();
 
-            printTelemetry();
-
-        }
+        controlRobot();
     }
 
     private boolean initializeRobot() {
@@ -172,8 +163,7 @@ public class OmniOpMode extends LinearOpMode {
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
             // Arm motors
             liftArmMotor = hardwareMap.get(DcMotor.class, "liftArmMotor");
-            intakeArmMotor1 = hardwareMap.get(DcMotor.class, "intakeArmMotor1");
-            intakeArmMotor2 = hardwareMap.get(DcMotor.class, "intakeArmMotor2");
+            intakeArmMotor = hardwareMap.get(DcMotor.class, "extendoneck");
             intakeInOutMotor = hardwareMap.get(DcMotor.class, "intakeInOutMotor ");
             //Servos
             liftBucketServo = hardwareMap.get(Servo.class, "liftBucketServo");
@@ -184,22 +174,15 @@ public class OmniOpMode extends LinearOpMode {
             /*
                 Setup motors
              */
-            leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
             leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
             rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
             rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-            // get lift arm starting position; we want to use run to position
             liftArmStart = liftArmMotor.getCurrentPosition();
-            liftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            liftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            // get intake arm starting positions; TODO might need to set opp directions
-            intakeArm1Start = intakeArmMotor1.getCurrentPosition();
-            intakeArmMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            intakeArm2Start = intakeArmMotor2.getCurrentPosition();
-            intakeArmMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+            liftArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intakeArmStart = intakeArmMotor.getCurrentPosition();
+            intakeArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             intakeInOutStart = intakeInOutMotor.getCurrentPosition();
             intakeInOutMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -212,38 +195,51 @@ public class OmniOpMode extends LinearOpMode {
 
     private void controlRobot() {
         // Method that control all robot behaviors
-        getGamepadInputs(); // Get the inputs from the gamepads
-        handleRobotMotion(); // Use inputs to control motion
-        handleLiftArm();  // Use input to control lift arm
-        handleIntakeArm();
+        double[] powers;
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
     }
 
-    private void getGamepadInputs() {
+    public double[] setMotorPowers(double axial, double lateral, double yaw){
+        // Combine the joystick requests for each axis-motion to determine each wheel's power.
+        // Set up a variable for each drive wheel to save the power level for telemetry.
+        double leftFrontPower  = axial + lateral + yaw;
+        double rightFrontPower = axial - lateral - yaw;
+        double leftBackPower   = axial - lateral + yaw;
+        double rightBackPower  = axial + lateral - yaw;
+
+        leftFrontDrive.setPower(leftFrontPower);
+        rightFrontDrive.setPower(rightFrontPower);
+        leftBackDrive.setPower(leftBackPower);
+        rightBackDrive.setPower(rightBackPower);
+
+        return new double[]{leftFrontPower, rightFrontPower, leftBackPower, rightBackPower};
+    }
+
+    private void getGamepadInputs(){
         // Get the inputs from the controllers
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
         axial = -gamepad1.right_stick_y;  // Note: pushing stick forward gives negative value
         lateral = gamepad1.left_stick_x;
         yaw = gamepad1.right_stick_x;
-        liftArmMotorPosition = gamepad2.left_stick_y;
-        intakeArmPosition = gamepad2.right_stick_y;
+        slowMode = gamepad1.left_bumper;
+        fastMode = gamepad1.right_bumper;
+        liftArmMotorPosition = gamepad2.right_stick_y;
+        intakeArmPosition = gamepad2.left_stick_y;
         intakeArmOut = gamepad2.left_trigger > 0.5;
         intakeArmIn = gamepad2.left_bumper;
         liftArmDump = gamepad2.square;
         liftArmExtend = gamepad2.triangle;
         liftArmRetract = gamepad2.circle;
-        intakeBucketUp = gamepad2.right_stick_button;
-        intakeBucketDown = gamepad2.left_stick_button;
+        intakeBucketUp = gamepad2.dpad_up;
+        intakeBucketDown = gamepad2.dpad_down;
         intakeBucketspinCW = gamepad2.right_trigger > 0.5;
         intakeBucketspinCCW = gamepad2.right_bumper;
-
-        if(gamepad1.left_bumper){
-            slowMode = !slowMode;
-            fastMode = false;
-        }
-        if(gamepad1.right_bumper){
-            fastMode = !fastMode;
-            slowMode = false;
-        }
     }
 
     private void handleRobotMotion() {
@@ -291,131 +287,112 @@ public class OmniOpMode extends LinearOpMode {
         rightBackDrive.setPower(rightBackPower);
     }
 
-    private void handleLiftArm() {
+    private void handleLiftArm(){
         // Logic for controlling the lift arm up/down
-
-        setLiftMotorPosition(liftArmMotorPosition);
+        if(liftArmMotorPosition <= 0.0) {
+            if(liftArmMotor.getCurrentPosition() > (liftArmStart - 10)){
+                liftArmMotor.setPower(liftArmMotorPosition);
+            }else{
+                liftArmMotor.setPower(0.0);
+            }
+        }
+        else{
+            if(liftArmMotor.getCurrentPosition() < (MOTOR_LIMIT + liftArmStart)){
+                liftArmMotor.setPower(liftArmMotorPosition);
+            }
+            else{
+                liftArmMotor.setPower(0.0);
+                //testMotor.setTargetPosition(MOTOR_LIMIT+beginning);
+            }
+        }
 
         // Logic for controlling lift arm servo position
-        // TODO might need to check signs again
-        if (liftArmExtend && liftArmMotor.getCurrentPosition() < LIFT_MOTOR_LIMIT / 2.0) {
+        if(liftArmExtend && liftArmMotor.getCurrentPosition() > MOTOR_LIMIT/2.0){
             liftArmServo.setPosition(liftArmServo.getPosition() + 0.01);
             liftBucketServo.setPosition((1.0 - liftArmServo.getPosition()));
         }
         // TODO this check is here to make sure the servo is returned to neutral when the arm is down or moving down
-        else if (liftArmMotor.getCurrentPosition() >= LIFT_MOTOR_LIMIT / 2.0) {
+        else if (liftArmMotor.getCurrentPosition() <= MOTOR_LIMIT/2.0){
             liftArmServo.setPosition(liftArmServo.getPosition() - 0.01);
             liftBucketServo.setPosition(1.0 - liftArmServo.getPosition());
-        } else if (liftArmRetract) {
+        }
+        else if(liftArmRetract){
             liftArmServo.setPosition(liftArmServo.getPosition() - 0.01);
             liftBucketServo.setPosition(1.0 - liftArmServo.getPosition());
         }
 
-        if (liftArmDump && liftArmMotor.getCurrentPosition() < LIFT_MOTOR_LIMIT / 2.0) {
+        if(liftArmDump && liftArmMotor.getCurrentPosition() > MOTOR_LIMIT/2.0){
             liftBucketServo.setPosition(1.0);
-        } else {
+        }else{
             liftBucketServo.setPosition(1.0 - liftArmServo.getPosition());
         }
     }
 
-    private void handleIntakeArm() {
-        // Logic to control arm rotation; there are two motors
-        double motorDamping = 3.5;
-        if (intakeArmPosition <= 0.0) {
-            if (intakeArmMotor1.getCurrentPosition() < intakeArm1Start + 50) {
-                intakeArmMotor1.setPower(0.0);
-            } else {
-                intakeArmMotor1.setPower(intakeArmPosition / motorDamping);
-            }
-            // motor 2; might need to reverse
-            if (intakeArmMotor2.getCurrentPosition() < intakeArm2Start + 50) {
-                intakeArmMotor2.setPower(0.0);
-            } else {
-                intakeArmMotor2.setPower(intakeArmPosition / motorDamping);
-            }
-        } else {
-            if (intakeArmMotor1.getCurrentPosition() >= INTAKE_ARM_MOTOR_LIMIT) {
-                intakeArmMotor1.setPower(0.0);
-            } else {
-                intakeArmMotor1.setPower(intakeArmPosition / motorDamping);
-            }
-            // motor 2; might need to kill both motors
-            if (intakeArmMotor2.getCurrentPosition() >= INTAKE_ARM_MOTOR_LIMIT) {
-                intakeArmMotor2.setPower(0.0);
-            } else {
-                intakeArmMotor2.setPower(intakeArmPosition / motorDamping);
+    private void handleIntakeArm(){
+        // Logic to control arm rotation
+        if(intakeArmPosition <= 0.0 ){
+            if(intakeArmMotor.getCurrentPosition() < intakeArmStart + 100){
+                intakeArmMotor.setPower(0.0);
+            }else{
+                intakeArmMotor.setPower(intakeArmPosition/2.0);
             }
         }
-        // TODO test
-        //setIntakeArmPosition(intakeArmPosition);
+        else{
+            if(intakeArmMotor.getCurrentPosition() >= INTAKE_RAISELOWER_MOTOR_LIMIT){
+                intakeArmMotor.setPower(0.0);
+            }else{
+                intakeArmMotor.setPower(intakeArmPosition/2.0);
+            }
+        }
 
         // Logic to control intake arm in/out
-        if (intakeArmOut) {
-            if (intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT) { // >=)
+        if(intakeArmOut){
+            if(intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT){ // >=)
                 intakeInOutMotor.setPower(0.0);
-            } else {
-                intakeInOutMotor.setPower(-1.0);
             }
-        } else if (intakeArmIn) {
-            if (intakeInOutMotor.getCurrentPosition() <= intakeInOutStart + 20) { // >=)
+            else{
+                intakeInOutMotor.setPower(-0.5);
+            }
+        }
+        else if(intakeArmIn){
+            if(intakeInOutMotor.getCurrentPosition() <= intakeInOutStart + 20){ // >=)
                 intakeInOutMotor.setPower(0.0);
-            } else {
+            }
+            else{
                 intakeInOutMotor.setPower(1.0);
             }
-        } else {
+        }
+        else{
             intakeInOutMotor.setPower(0.0);
         }
 
         // Logic to handle wrist motion
         // add a check that the arms are not moving and lift is not raised before moving arm out
-        if (intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT - 200
-                && liftArmMotor.getCurrentPosition() <= liftArmStart + 200) {
-            // control is allowed
-            if (intakeBucketUp) {
-                intakeArmServo.setPosition(intakeArmServo.getPosition() + 0.01);
-            } else if (intakeBucketDown) {
-                intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.01);
-            }
-        } else {
+        if(intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT - 500
+            && liftArmMotor.getCurrentPosition() <= liftArmStart + 200){
+                // control is allowed
+                if(intakeBucketUp){
+                    intakeArmServo.setPosition(intakeArmServo.getPosition() +0.01);
+                }
+                else if(intakeBucketDown){
+                    intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.01);
+                }
+        }else{
             intakeArmServo.setPosition(0.0);
         }
 
         //dump button
-
+        
         // Logic to handle bucket spin
-        if (intakeBucketspinCW) {
+        if(intakeBucketspinCW){
             intakeBucketServo.setPower(1.0);
-        } else if (intakeBucketspinCCW) {
+        }
+        else if(intakeBucketspinCCW){
             intakeBucketServo.setPower(-1.0);
-        } else {
-            intakeBucketServo.setPower(0.0);
         }
-    }
-
-    private void setLiftMotorPosition(double motorinput) {
-        setMotorPosition(liftArmMotor, motorinput, LIFT_MOTOR_LIMIT, liftArmStart - 30); // motor runs in reverse
-    }
-
-    private void setIntakeArmPosition(double motorinput){
-        // TODO a little tricky bc motors might need to be reversed
-        setMotorPosition(intakeArmMotor1, motorinput, INTAKE_ARM_MOTOR_LIMIT, intakeArm1Start);
-        setMotorPosition(intakeArmMotor2, motorinput, INTAKE_ARM_MOTOR_LIMIT, intakeArm2Start);
-    }
-
-    private void setMotorPosition(DcMotor motor, double motorinput, int motor_limit, int lower_limit) {
-        // basically the same as
-        if(motor.isBusy() || motorinput == 0.0) {
-            // TODO need to reset mode; break if into two
-            return;
+        else{
+            intakeBucketServo.setPower(0.0 );
         }
-        if(motorinput > 0.0){
-            motor.setTargetPosition((int)(motorinput* motor_limit));
-
-        } else if (motorinput < 0.0) {
-            motor.setTargetPosition(lower_limit);
-        }
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motor.setPower(0.25);
     }
 
     // print out the robot's telemetry
@@ -425,8 +402,7 @@ public class OmniOpMode extends LinearOpMode {
         telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
         telemetry.addData("Lift Arm Position: ", liftArmMotor.getCurrentPosition());
-        telemetry.addData("Intake Arm 1 Position: ", intakeArmMotor1.getCurrentPosition());
-        telemetry.addData("Intake Arm 2 Position: ", intakeArmMotor2.getCurrentPosition());
+        telemetry.addData("Intake Arm Position: ", intakeArmMotor.getCurrentPosition());
         telemetry.addData("Intake In/Out Position: ", intakeInOutMotor.getCurrentPosition());
 
         telemetry.update();

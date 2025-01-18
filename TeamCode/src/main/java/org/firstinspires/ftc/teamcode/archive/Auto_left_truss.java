@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.archive;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -65,9 +65,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 // lol
 
-@Autonomous(name="Robot: Auto Drive Straight Calibration", group="Robot")
+@Autonomous(name="Robot: Auto Left Truss", group="Robot")
 @Disabled
-public class Auto_straight_cali extends LinearOpMode {
+public class Auto_left_truss extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -166,15 +166,34 @@ public class Auto_straight_cali extends LinearOpMode {
         double[] powers = setMotorPowers(axial, lateral, yaw);
 
         // -------Step 1:  Drive forward  ------
-        powers = setMotorPowers(0.0, 0.25, 0.0);
+        powers = setMotorPowers(0.25, 0.0, 0.0);
         runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 5.0 ) {
+        while (opModeIsActive() && runtime.seconds() < 5.79 ) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
         // -------------END STEP 1 ----------------------------
 
+        // ---------- Rotate CCW ----------------------------
+        powers = setMotorPowers(0.0, 0.0, -0.25);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 3.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------------- END STEP 2---------------------
+
+        // -------Step 3:  Drive forward  ------
+ //               powers = setMotorPowers(0.25, 0.0, 0.0);
+//        runtime.reset();
+//        while (opModeIsActive() && runtime.seconds() < 1.61) {
+//            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+//            telemetry.update();
+//        }
+//        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------END STEP 3 ----------------------------
     }
 
     public double[] setMotorPowers(double axial, double lateral, double yaw){

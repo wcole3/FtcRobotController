@@ -1,35 +1,74 @@
-/*
- * Copyright (c) 2019 OpenFTC Team
+/* Copyright (c) 2021 FIRST. All rights reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.archive;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Random Autonomous")
-public class RandomAutonomous extends LinearOpMode
-{
+/*
+ * This file contains an example of a Linear "OpMode".
+ * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
+ * The names of OpModes appear on the menu of the FTC Driver Station.
+ * When a selection is made from the menu, the corresponding OpMode is executed.
+ *
+ * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
+ * This code will work with either a Mecanum-Drive or an X-Drive train.
+ * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
+ * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
+ *
+ * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
+ *
+ * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
+ * Each motion axis is controlled by one Joystick axis.
+ *
+ * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
+ * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
+ * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
+ *
+ * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
+ * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
+ * the direction of all 4 motors (see code below).
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ */
+// lol
+
+@Autonomous(name="Robot: Auto Right", group="Robot")
+@Disabled
+public class Auto_right extends LinearOpMode {
+
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftFrontDrive = null;
@@ -65,15 +104,10 @@ public class RandomAutonomous extends LinearOpMode
     private double intakePos = 0.26;
     private double wristPos = 0.0;
 
-    private enum VOTE{
-        LEFT,
-        CENTER,
-        RIGHT
-    }
-
+    //LOL
     @Override
-    public void runOpMode()
-    {
+    public void runOpMode() {
+
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
         leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
@@ -113,22 +147,11 @@ public class RandomAutonomous extends LinearOpMode
         // set the min arm position to whereever it starts
         MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
 
-        /*
-         * Wait for the user to press start on the Driver Station
-         */
+        // Wait for the game to start (driver presses PLAY)
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         waitForStart();
-
-        // randomly pick left, right, or center
-        VOTE vote = VOTE.CENTER;
-        double random = Math.random();
-        if(random < 0.33){
-            vote = VOTE.LEFT;
-        }else if(random < 0.66){
-            vote = VOTE.RIGHT;
-        }
-
-        // once we get here, we have decided which direction to travel
-        // TODO do the movement
         runtime.reset();
 
         double max;
@@ -138,60 +161,29 @@ public class RandomAutonomous extends LinearOpMode
         double lateral =  0.0; // strafe side to side
         double yaw     =  0.0;  // turn robot
 
+        // Combine the joystick requests for each axis-motion to determine each wheel's power.
+        // Set up a variable for each drive wheel to save the power level for telemetry.
         double[] powers = setMotorPowers(axial, lateral, yaw);
-        if(vote == VOTE.LEFT){
-            // -------Step 1:  Drive forward  ------
-            powers = setMotorPowers(0.25, 0.0, 0.0);
-            runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 5.4) {
-                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-                telemetry.update();
-            }
-            powers = setMotorPowers(0.0, 0.0, 0.0);
-            // -------------END STEP 1 ----------------------------
 
-            // ---------- Strafe Left ----------------------------
-            powers = setMotorPowers(0.0, -0.25, 0.0);
-            runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 3) {
-                telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
-                telemetry.update();
-            }
-            powers = setMotorPowers(0.0, 0.0, 0.0);
-            // -------------------- END STEP 2---------------------
+        // -------Step 1:  Drive forward  ------
+        powers = setMotorPowers(0.25, 0.0, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.4) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
         }
-        else if(vote == VOTE.RIGHT){
-            // -------Step 1:  Drive forward  ------
-            powers = setMotorPowers(0.25, 0.0, 0.0);
-            runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 5.4) {
-                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-                telemetry.update();
-            }
-            powers = setMotorPowers(0.0, 0.0, 0.0);
-            // -------------END STEP 1 ----------------------------
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------END STEP 1 ----------------------------
 
-            // ---------- Strafe Right ----------------------------
-            powers = setMotorPowers(0.0, 0.25, 0.0);
-            runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 3) {
-                telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
-                telemetry.update();
-            }
-            powers = setMotorPowers(0.0, 0.0, 0.0);
-            // -------------------- END STEP 2---------------------
-        }else{
-            // default to center, lowest risk
-            // -------Step 1:  Drive forward  ------
-            powers = setMotorPowers(0.25, 0.0, 0.0);
-            runtime.reset();
-            while (opModeIsActive() && runtime.seconds() < 6.25) {
-                telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-                telemetry.update();
-            }
-            powers = setMotorPowers(0.0, 0.0, 0.0);
-            // -------------END STEP 1 ----------------------------
+        // ---------- Strafe Right ----------------------------
+        powers = setMotorPowers(0.0, 0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 3) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
         }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // -------------------- END STEP 2---------------------
     }
 
     public double[] setMotorPowers(double axial, double lateral, double yaw){
