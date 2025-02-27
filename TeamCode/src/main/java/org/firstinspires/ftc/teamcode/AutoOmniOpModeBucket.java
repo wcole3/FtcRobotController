@@ -67,7 +67,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 // lol
 
-@Autonomous(name = "Autobots Right")
+@Autonomous(name = "Autobots Bucket")
 @Disabled
 public class AutoOmniOpModeBucket extends LinearOpMode {
 
@@ -196,6 +196,16 @@ public class AutoOmniOpModeBucket extends LinearOpMode {
     private void controlRobot() {
         // Method that control all robot behaviors
         double[] powers;
+        // -------------- MOTION STEP
+        //move forward 8 inch
+        powers = setMotorPowers(0.25,  0.0, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //turn left 90 degrees
         powers = setMotorPowers(0.0,  0.25, 0.0);
         runtime.reset();
         while (opModeIsActive() && runtime.seconds() < 5.0) {
@@ -203,6 +213,79 @@ public class AutoOmniOpModeBucket extends LinearOpMode {
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
+        //move forward 40 inch
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //raise liftbucket arm up
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //turn left 86 degrees
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //move forward 5 inch
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //extend bucketarm
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //turn turn bucketarm
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //move forward 3 inch
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //rotate bucket arm 97 degrees
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        // put liftbucket down
+        powers = setMotorPowers(0.0,  0.25, 0.0);
+        runtime.reset();
+        while (opModeIsActive() && runtime.seconds() < 5.0) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        powers = setMotorPowers(0.0, 0.0, 0.0);
+        //------------------ MOTION STEP -------------------------
     }
 
     public double[] setMotorPowers(double axial, double lateral, double yaw){

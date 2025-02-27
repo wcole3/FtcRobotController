@@ -129,7 +129,7 @@ public class OmniOpMode extends LinearOpMode {
 
     private int intakeArm1Start;
     private int intakeArm2Start;
-    private final int INTAKE_ARM_MOTOR_LIMIT = 800;
+    private final int INTAKE_ARM_MOTOR_LIMIT = 450;
 
     private int intakeInOutStart;
     private final int INTAKE_INOUT_MOTOR_LIMIT = 3450;
@@ -224,26 +224,42 @@ public class OmniOpMode extends LinearOpMode {
         axial = -gamepad1.right_stick_y;  // Note: pushing stick forward gives negative value
         lateral = gamepad1.left_stick_x;
         yaw = gamepad1.right_stick_x;
-        liftArmMotorPosition = gamepad2.left_stick_y;
+
         intakeArmPosition = gamepad2.right_stick_y;
         intakeArmOut = gamepad2.left_trigger > 0.5;
         intakeArmIn = gamepad2.left_bumper;
         liftArmDump = gamepad2.square;
         liftArmExtend = gamepad2.triangle;
         liftArmRetract = gamepad2.circle;
-        intakeBucketUp = gamepad2.right_stick_button;
-        intakeBucketDown = gamepad2.left_stick_button;
+        intakeBucketUp = gamepad2.dpad_left;
+        intakeBucketDown = gamepad2.dpad_right;
         intakeBucketspinCW = gamepad2.right_trigger > 0.5;
         intakeBucketspinCCW = gamepad2.right_bumper;
 
         if(gamepad1.left_bumper){
-            slowMode = !slowMode;
+            slowMode = true;
+            fastMode = false;
+        }
+        if(gamepad1.left_trigger > 0.5){
+            slowMode = false;
             fastMode = false;
         }
         if(gamepad1.right_bumper){
-            fastMode = !fastMode;
+            fastMode = true;
             slowMode = false;
         }
+        if(gamepad1.right_trigger > 0.5){
+            fastMode = false;
+            slowMode = false;
+        }
+        // TODO temp raise lower with button press
+        if(gamepad2.a){
+            liftArmMotorPosition = 1.0;
+        }
+        if(gamepad2.b){
+            liftArmMotorPosition = -1.0;
+        }
+        //liftArmMotorPosition = gamepad2.left_stick_y;
     }
 
     private void handleRobotMotion() {
@@ -368,13 +384,13 @@ public class OmniOpMode extends LinearOpMode {
 
         // Logic to handle wrist motion
         // add a check that the arms are not moving and lift is not raised before moving arm out
-        if (intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT - 200
+        if (intakeInOutMotor.getCurrentPosition() >= INTAKE_INOUT_MOTOR_LIMIT - 300
                 && liftArmMotor.getCurrentPosition() <= liftArmStart + 200) {
             // control is allowed
             if (intakeBucketUp) {
-                intakeArmServo.setPosition(intakeArmServo.getPosition() + 0.01);
+                intakeArmServo.setPosition(intakeArmServo.getPosition() + 0.015);
             } else if (intakeBucketDown) {
-                intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.01);
+                intakeArmServo.setPosition(intakeArmServo.getPosition() - 0.015);
             }
         } else {
             intakeArmServo.setPosition(0.0);
