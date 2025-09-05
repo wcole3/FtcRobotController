@@ -33,7 +33,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -64,9 +66,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 // lol
 
-@TeleOp(name = "Omni Drive Mode", group = "Linear OpMode")
+@TeleOp(name = "Tank Drive Mode", group = "Linear OpMode")
 //@Disabled
-public class OmniDriveMode extends LinearOpMode {
+public class TankDriveMode extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -77,7 +79,18 @@ public class OmniDriveMode extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightBackDrive = null;
 
+    private Servo leftArmServo;
+    private Servo rightArmServo;
 
+    private double leftArmSetPoint = Range.clip(Math.random(), 0.0, 1.0);
+    private double rightArmSetPoint = Range.clip(Math.random(), 0.0, 1.0);
+
+    private int armTicks = 0;
+    private final int ARM_TICK_LIMIT = 10000;
+
+    private POSE cmdPose = null;
+    private boolean toggle = false;
+    private boolean switchArm = false;
     /**
      * Control Vars
      */
@@ -123,6 +136,9 @@ public class OmniDriveMode extends LinearOpMode {
             rightBackDrive = hardwareMap.get(DcMotor.class, "motor 0");
             rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
+            leftArmServo = hardwareMap.get(Servo.class, "left-arm");
+            rightArmServo = hardwareMap.get(Servo.class, "right-arm");
+
             status = true;
         } catch (Exception e) {
             status = false;
@@ -134,45 +150,87 @@ public class OmniDriveMode extends LinearOpMode {
         // Method that control all robot behaviors
         getGamepadInputs(); // Get the inputs from the gamepads
         handleRobotMotion(); // Use inputs to control motion
+        handleArmMotion(); // wave the arms
+        armTicks++;
     }
 
     private void getGamepadInputs() {
         forward = gamepad1.right_trigger;
         turning = gamepad1.left_stick_x;
         reverse = gamepad1.left_trigger;
+
+        if(gamepad1.a){
+            cmdPose = POSE.TOUCHDOWN;
+        }else{
+            cmdPose = null;
+        }
+
+        if(toggle) {
+            if (gamepad2.dpad_up) {
+                leftArmSetPoint = leftArmServo.getPosition() + 0.05 ;
+                toggle = false;
+            } else if (gamepad2.dpad_down) {
+                leftArmSetPoint = leftArmServo.getPosition() - 0.05;
+                toggle = false;
+            }
+            if (gamepad2.dpad_right) {
+                rightArmSetPoint = rightArmServo.getPosition() + 0.05;
+                toggle = false;
+            } else if (gamepad2.dpad_left) {
+                rightArmSetPoint = rightArmServo.getPosition() - 0.05 ;
+                toggle = false;
+            }
+
+            if(gamepad2.y){
+                leftArmSetPoint = switchArm ? 0.0 : 1.0;
+                rightArmSetPoint = switchArm ? 0.0 : 1.0;
+                switchArm = !switchArm;
+                toggle = false;
+            }
+        }
+
+        if(gamepad2.a){
+            leftArmSetPoint = POSE.TOUCHDOWN.getLeftArmPos();
+            rightArmSetPoint = POSE.TOUCHDOWN.getRightArmPos();
+        } else if(gamepad2.b){
+            leftArmSetPoint = POSE.LUNGE.getLeftArmPos();
+            rightArmSetPoint = POSE.LUNGE.getRightArmPos();
+        } else if(gamepad2.x){
+            leftArmSetPoint = POSE.BACK.getLeftArmPos();
+            rightArmSetPoint = POSE.BACK.getRightArmPos();
+        }
+
+        if(!gamepad2.dpad_up && !gamepad2.dpad_down && !gamepad2.dpad_right && !gamepad2.dpad_left && !gamepad2.y)
+            toggle = true;
+    }
+
+    private void handleArmMotion(){
     }
 
     private void handleRobotMotion(){
         // if forward is being held and reverse gets pressed it keeps going forward.  If reverse is being held and forward is pressed it keeps going in reverse
         double totalRightPower = forward - reverse;
         double totalLeftPower = forward - reverse;
+        double leftAdd = 0.0;
+        double rightAdd = 0.0;
         if(turning > 0.0){
             debugStr = "turning right";
-            totalLeftPower = turning;
-            totalRightPower = -1.*turning;
+            leftAdd = turning;
+            rightAdd = -1.*turning;
         }else if(turning < 0.0){
             debugStr = "turning left";
             // when we are here turning is negative
-            totalLeftPower = turning;
-            totalRightPower = -1.*turning;
+            leftAdd = turning;
+            rightAdd = -1.*turning;
         }else{
             debugStr = "";
         }
 
-//        totalRightPower += turning > 0.0 ? -turning : turning;
-//        totalLeftPower += turning > 0.0 ? -turning : turning;
+        totalLeftPower = (leftAdd + totalLeftPower)/Math.abs(totalLeftPower);
+        totalRightPower = (rightAdd + totalRightPower)/Math.abs(totalRightPower);
 
         leftBackDrive.setPower(totalLeftPower);
         rightBackDrive.setPower(totalRightPower);
-//        if(gamepad1.right_trigger > 0.0){// if forward is pressed
-//            leftBackDrive.setPower(forward);
-//            rightBackDrive.setPower(forward);
-//        }
-//        else if(gamepad1.left_trigger > 0.0){// if reverse is pressed
-//            leftBackDrive.setPower(reverse);
-//            rightBackDrive.setPower(reverse);
-//        }
-
 
     }
 
@@ -198,11 +256,8 @@ public class OmniDriveMode extends LinearOpMode {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Front left/Right", "%4.2f,  %4.2f", leftBackDrive.getPower(), rightBackDrive.getPower());
         telemetry.addData("Controller Input: ", "%3.2f", turning);
-        telemetry.addData("debugstr: ","%s", debugStr);
-//        telemetry.addData("Lift Arm Position: ", liftArmMotor.getCurrentPosition());
-//        telemetry.addData("Intake Arm 1 Position: ", intakeArmMotor1.getCurrentPosition());
-//        telemetry.addData("Intake Arm 2 Position: ", intakeArmMotor2.getCurrentPosition());
-//        telemetry.addData("Intake In/Out Position: ", intakeInOutMotor.getCurrentPosition());
+        telemetry.addData("Left Arm Position: ","%f", leftArmServo.getPosition());
+        telemetry.addData("Right Arm Position: ","%f", rightArmServo.getPosition());
 
         telemetry.update();
     }
