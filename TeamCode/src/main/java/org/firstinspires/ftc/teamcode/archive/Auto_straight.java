@@ -71,11 +71,10 @@ public class Auto_straight extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
-    private Servo wristServo = null;
+    private DcMotor frontLeftDrive = null;
+    private DcMotor backLeftDrive = null;
+    private DcMotor frontRightDrive = null;
+    private DcMotor backRightDrive = null;
 
     private Servo intakeServo = null;
     private Servo hugServo = null;
@@ -110,10 +109,10 @@ public class Auto_straight extends LinearOpMode {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
 
         leftArmMotor = hardwareMap.get(DcMotor.class, "left_arm_motor");
         rightArmMotor = hardwareMap.get(DcMotor.class, "right_arm_motor");
@@ -131,18 +130,10 @@ public class Auto_straight extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        // Arm motors
-        leftArmMotor.setDirection(DcMotor.Direction.REVERSE);
-        rightArmMotor.setDirection(DcMotor.Direction.FORWARD);
-        // must set position before switching mode
-        leftArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // set the min arm position to whereever it starts
         MIN_ARM_POS = (int)(leftArmMotor.getCurrentPosition() + rightArmMotor.getCurrentPosition())/2;
@@ -161,15 +152,53 @@ public class Auto_straight extends LinearOpMode {
         double lateral =  0.0; // strafe side to side
         double yaw     =  0.0;  // turn robot
 
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double[] powers = setMotorPowers(axial, lateral, yaw);
+            // Combine the joystick requests for each axis-motion to determine each wheel's power.
+            // Set up a variable for each drive wheel to save the power level for telemetry.
+            double frontLeftPower  = axial + lateral + yaw;
+            double frontRightPower = axial - lateral - yaw;
+            double backLeftPower   = axial - lateral + yaw;
+            double backRightPower  = axial + lateral - yaw;
 
-        // -------Step 1:  Drive forward  ------
-        powers = setMotorPowers(0.25, 0.0, 0.0);
-        runtime.reset();
-        while (opModeIsActive() && runtime.seconds() < 6.25) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            // Normalize the values so no wheel power exceeds 100%
+            // This ensures that the robot maintains the desired motion.
+            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+            max = Math.max(max, Math.abs(backLeftPower));
+            max = Math.max(max, Math.abs(backRightPower));
+
+            if (max > 1.0) {
+                frontLeftPower  /= max;
+                frontRightPower /= max;
+                backLeftPower   /= max;
+                backRightPower  /= max;
+            }
+
+            // This is test code:
+            //
+            // Uncomment the following code to test your motor directions.
+            // Each button should make the corresponding motor run FORWARD.
+            //   1) First get all the motors to take to correct positions on the robot
+            //      by adjusting your Robot Configuration if necessary.
+            //   2) Then make sure they run in the correct direction by modifying the
+            //      the setDirection() calls above.
+            // Once the correct motors move in the correct direction re-comment this code.
+
+            /*
+            frontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
+            backLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
+            frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
+            backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
+            */
+
+            // Send calculated power to wheels
+            frontLeftDrive.setPower(frontLeftPower);
+            frontRightDrive.setPower(frontRightPower);
+            backLeftDrive.setPower(backLeftPower);
+            backRightDrive.setPower(backRightPower);
+
+            // Show the elapsed game time and wheel power.
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
+            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
             telemetry.update();
         }
         powers = setMotorPowers(0.0, 0.0, 0.0);
